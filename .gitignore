@@ -10,7 +10,9 @@ frontend/.flutter-plugins
 frontend/.flutter-plugins-dependencies
 frontend/.packages
 
-# common
-.DS_Store
+# editor
 .idea/
 .vscode/
+
+# OS
+.DS_Store
