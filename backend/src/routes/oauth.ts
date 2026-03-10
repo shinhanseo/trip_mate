@@ -128,7 +128,6 @@ router.get("/callback", async (req, res) => {
       }
 
       // 5. refresh token 저장
-      // 일단 간단하게 원문 말고 해시 저장
       const tokenHash = crypto
         .createHash("sha256")
         .update(String(refreshToken || ""))
