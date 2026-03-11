@@ -514,4 +514,42 @@ router.post("/refresh", async (req, res) => {
   }
 });
 
+/**
+ * 5) 로그아웃
+ * POST /auth/logout
+ *
+ * body:
+ * {
+ *   "refresh_token": "..."
+ * }
+ */
+router.post("/logout", async (req, res) => {
+  const refreshToken = String(req.body.refreshToken || "");
+
+  if (!refreshToken) {
+    return res.status(400).json({ message: "refreshToken is required" });
+  }
+
+  try {
+    jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+  } catch {
+    return res.status(400).json({ message: "invalid refresh token" });
+  }
+
+  const refreshTokenHash = hashToken(refreshToken);
+
+  await pool.query(
+    `update refresh_tokens
+     set revoked_at = now()
+     where token_hash = $1
+       and revoked_at is null`,
+    [refreshTokenHash]
+  );
+
+  return res.json({
+    success: true,
+    message: "logged out",
+  });
+});
+
 export default router;
