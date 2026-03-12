@@ -3,8 +3,9 @@ import session from "express-session";
 import cors from 'cors';
 
 import placeSearchRouter from "./routes/placeSearch.js";
-import jejuWeatherRouter from "./routes/jejuweather.js";
+import jejuWeatherRouter from "./routes/jejuWeather.js";
 import oauthRouter from "./routes/oauth.js";
+import meetingRouter from "./routes/meeting.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,6 +23,7 @@ app.use(
 app.use("/api/place", placeSearchRouter);
 app.use("/api/weather", jejuWeatherRouter);
 app.use("/api/auth", oauthRouter);
+app.use("/api/meeting", meetingRouter);
 
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
