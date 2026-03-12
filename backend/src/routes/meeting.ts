@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { pool } from "../db.js";
 import { authRequired, AuthRequest } from "../middleware/authRequired.js";
+import { isValidAgeGroups } from "../utils/ageGroup.js";
 
 const router = Router();
 
@@ -20,7 +21,7 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
         m.scheduled_at,
         m.max_members,
         m.gender,
-        m.age_group,
+        m.age_groups,
         m.category,
         m.region_primary,
         count(mm.id) filter (where mm.status = 'joined') as current_members
@@ -36,18 +37,18 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
     return res.json({
       success: true,
       data: {
-        userId,                                           // user id
+        userId,
         items: meetingRes.rows.map((row) => ({
-          id: row.id,                                     // 동행 id
-          title: row.title,                               // 동행 제목
-          placeText: row.place_text,                      // 동행 장소
-          scheduledAt: row.scheduled_at,                  // 동행 시간
-          maxMembers: row.max_members,                    // 정원
-          currentMembers: Number(row.current_members),    // 현재원
-          gender: row.gender,                             // 모집 성별
-          ageGroup: row.age_group,                        // 모집 연령
-          category: row.category,                         // 카테고리  
-          regionPrimary: row.region_primary,              // 분류 지역
+          id: row.id,
+          title: row.title,
+          placeText: row.place_text,
+          scheduledAt: row.scheduled_at,
+          maxMembers: row.max_members,
+          currentMembers: Number(row.current_members),
+          gender: row.gender,
+          ageGroups: row.age_groups,
+          category: row.category,
+          regionPrimary: row.region_primary,
         })),
       },
     });
@@ -84,7 +85,7 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
         m.scheduled_at,
         m.max_members,
         m.gender,
-        m.age_group,
+        m.age_groups,
         m.category,
         m.description,
         m.status,
@@ -108,7 +109,8 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
         mm.user_id,
         mm.role,
         mm.joined_at,
-        u.nickname
+        u.nickname,
+        u.profile_image_url
       from meeting_members mm
       join users u
         on u.id = mm.user_id
@@ -137,7 +139,7 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
           maxMembers: row.max_members,
           currentMembers: Number(row.current_members),
           gender: row.gender,
-          ageGroup: row.age_group,
+          ageGroups: row.age_groups,
           category: row.category,
           description: row.description,
           status: row.status,
@@ -160,7 +162,7 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
   } finally {
     client.release();
   }
-})
+});
 
 router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
   const userId = req.user!.userId;
@@ -175,10 +177,17 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
     scheduledAt,
     maxMembers,
     gender,
-    ageGroup,
+    ageGroups,
     category,
     description,
   } = req.body;
+
+  if (!isValidAgeGroups(ageGroups)) {
+    return res.status(400).json({
+      success: false,
+      message: "invalid ageGroups",
+    });
+  }
 
   const client = await pool.connect();
 
@@ -198,7 +207,7 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
         scheduled_at,
         max_members,
         gender,
-        age_group,
+        age_groups,
         category,
         description,
         status
@@ -209,7 +218,7 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
       )
       returning id, host_user_id, title, place_text, place_lat, place_lng,
                 region_primary, region_secondary, scheduled_at, max_members,
-                gender, age_group, category, description, status, created_at, updated_at
+                gender, age_groups, category, description, status, created_at, updated_at
       `,
       [
         userId,
@@ -222,7 +231,7 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
         scheduledAt,
         maxMembers,
         gender,
-        ageGroup,
+        ageGroups,
         category,
         description,
       ]
@@ -261,7 +270,7 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
           maxMembers: meeting.max_members,
           currentMembers: 1,
           gender: meeting.gender,
-          ageGroup: meeting.age_group,
+          ageGroups: meeting.age_groups,
           category: meeting.category,
           description: meeting.description,
           status: meeting.status,
@@ -302,11 +311,18 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res) => {
     scheduledAt,
     maxMembers,
     gender,
-    ageGroup,
+    ageGroups,
     category,
     description,
     status,
   } = req.body;
+
+  if (!isValidAgeGroups(ageGroups)) {
+    return res.status(400).json({
+      success: false,
+      message: "invalid ageGroups",
+    });
+  }
 
   const client = await pool.connect();
 
@@ -347,7 +363,7 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res) => {
         scheduled_at = $7,
         max_members = $8,
         gender = $9,
-        age_group = $10,
+        age_groups = $10,
         category = $11,
         description = $12,
         status = $13,
@@ -365,7 +381,7 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res) => {
         scheduled_at,
         max_members,
         gender,
-        age_group,
+        age_groups,
         category,
         description,
         status,
@@ -382,7 +398,7 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res) => {
         scheduledAt,
         maxMembers,
         gender,
-        ageGroup,
+        ageGroups,
         category,
         description,
         status,
@@ -417,7 +433,7 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res) => {
           maxMembers: meeting.max_members,
           currentMembers: Number(memberCountRes.rows[0].current_members),
           gender: meeting.gender,
-          ageGroup: meeting.age_group,
+          ageGroups: meeting.age_groups,
           category: meeting.category,
           description: meeting.description,
           status: meeting.status,
