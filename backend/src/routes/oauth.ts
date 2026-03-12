@@ -3,6 +3,7 @@ import { pool } from "../db.js";
 import crypto from "crypto";
 import axios from "axios";
 import jwt from "jsonwebtoken";
+import { ok, fail } from "../utils/response.js";
 
 const router = Router();
 
@@ -16,16 +17,16 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
 const JWT_ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || "1h";
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || "30d";
 
-function buildDeepLink(params: Record<string, string>) { // 앱 딥링크 생성
+function buildDeepLink(params: Record<string, string>) {
   const query = new URLSearchParams(params).toString();
   return `${APP_DEEP_LINK}?${query}`;
 }
 
-function hashToken(token: string) { // 토큰 해시 생성
+function hashToken(token: string) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-function createAccessToken(userId: number) { // 액세스 토큰 생성
+function createAccessToken(userId: number) {
   return jwt.sign(
     { userId, type: "access" },
     JWT_ACCESS_SECRET,
@@ -35,7 +36,7 @@ function createAccessToken(userId: number) { // 액세스 토큰 생성
   );
 }
 
-function createRefreshToken(userId: number) { // 리프레시 토큰 생성
+function createRefreshToken(userId: number) {
   return jwt.sign(
     { userId, type: "refresh" },
     JWT_REFRESH_SECRET,
@@ -45,7 +46,7 @@ function createRefreshToken(userId: number) { // 리프레시 토큰 생성
   );
 }
 
-function getRefreshTokenExpiresAt() { // 리프레시 토큰 만료 시간 계산
+function getRefreshTokenExpiresAt() {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 30);
   return expiresAt;
@@ -69,10 +70,6 @@ router.get("/naver", (req, res) => {
 /**
  * 2) 네이버 콜백
  * GET /auth/naver/callback
- *
- * 성공 시 앱으로 access/refresh 토큰을 직접 보내지 않고
- * 일회용 exchangeCode만 딥링크로 전달
- * 이후에 exchangeCode를 사용하여 액세스/리프레시 토큰을 발급받음
  */
 router.get("/naver/callback", async (req, res) => {
   const code = String(req.query.code || "");
@@ -110,7 +107,6 @@ router.get("/naver/callback", async (req, res) => {
   delete req.session.naverState;
 
   try {
-    // 네이버 토큰 발급
     const tokenRes = await axios.post(
       "https://nid.naver.com/oauth2.0/token",
       null,
@@ -139,7 +135,6 @@ router.get("/naver/callback", async (req, res) => {
       );
     }
 
-    // 네이버 프로필 조회
     const profileRes = await axios.get("https://openapi.naver.com/v1/nid/me", {
       headers: {
         Authorization: `Bearer ${naverAccessToken}`,
@@ -176,7 +171,6 @@ router.get("/naver/callback", async (req, res) => {
     try {
       await client.query("BEGIN");
 
-      // 기존 유저 조회
       const userResult = await client.query(
         `select id from users where naver_user_id = $1`,
         [naverUserId]
@@ -185,7 +179,6 @@ router.get("/naver/callback", async (req, res) => {
       let userId: number;
 
       if (userResult.rows.length === 0) {
-        // users 생성
         const insertUserResult = await client.query(
           `insert into users (naver_user_id)
            values ($1)
@@ -195,7 +188,6 @@ router.get("/naver/callback", async (req, res) => {
 
         userId = insertUserResult.rows[0].id;
 
-        // user_profiles 생성
         await client.query(
           `insert into user_profiles (user_id, gender, age_range)
            values ($1, $2, $3)`,
@@ -204,7 +196,6 @@ router.get("/naver/callback", async (req, res) => {
       } else {
         userId = userResult.rows[0].id;
 
-        // 기존 프로필 업데이트
         await client.query(
           `update user_profiles
            set gender = $1,
@@ -215,7 +206,6 @@ router.get("/naver/callback", async (req, res) => {
         );
       }
 
-      // 네이버 토큰 social_accounts 저장
       const socialExpiresAt =
         naverExpiresIn > 0
           ? new Date(Date.now() + naverExpiresIn * 1000)
@@ -242,10 +232,9 @@ router.get("/naver/callback", async (req, res) => {
         ]
       );
 
-      // 일회용 exchange code 생성
       const exchangeCode = crypto.randomBytes(32).toString("hex");
       const exchangeCodeHash = hashToken(exchangeCode);
-      const exchangeExpiresAt = new Date(Date.now() + 1000 * 60 * 5); // 5분
+      const exchangeExpiresAt = new Date(Date.now() + 1000 * 60 * 5);
 
       await client.query(
         `insert into login_exchanges
@@ -256,7 +245,7 @@ router.get("/naver/callback", async (req, res) => {
 
       await client.query("COMMIT");
 
-      return res.redirect( // 회원가입 성공 시 앱으로 exchageCode, gender, ageRange 전달
+      return res.redirect(
         buildDeepLink({
           success: "true",
           exchangeCode,
@@ -295,17 +284,12 @@ router.get("/naver/callback", async (req, res) => {
 /**
  * 3) 일회용 exchange code로 우리 서비스 토큰 발급
  * POST /auth/session/exchange
- *
- * body:
- * {
- *   "exchange_code": "..."
- * }
  */
 router.post("/session/exchange", async (req, res) => {
   const exchangeCode = String(req.body.exchange_code || "").trim();
 
   if (!exchangeCode) {
-    return res.status(400).json({ message: "exchange_code is required" });
+    return fail(res, 400, "exchange_code is required");
   }
 
   const exchangeCodeHash = hashToken(exchangeCode);
@@ -324,31 +308,30 @@ router.post("/session/exchange", async (req, res) => {
 
     if (exchangeResult.rows.length === 0) {
       await client.query("ROLLBACK");
-      return res.status(401).json({ message: "invalid exchange code" });
+      return fail(res, 401, "invalid exchange code");
     }
 
     const exchangeRow = exchangeResult.rows[0];
 
     if (exchangeRow.used_at) {
       await client.query("ROLLBACK");
-      return res.status(401).json({ message: "exchange code already used" });
+      return fail(res, 401, "exchange code already used");
     }
 
     if (new Date(exchangeRow.expires_at).getTime() < Date.now()) {
       await client.query("ROLLBACK");
-      return res.status(401).json({ message: "exchange code expired" });
+      return fail(res, 401, "exchange code expired");
     }
 
     const userId = Number(exchangeRow.user_id);
 
-    // exchageCode 기반으로 인증 성공 시 액세스/리프레시 토큰 발급
     const accessToken = createAccessToken(userId);
     const refreshToken = createRefreshToken(userId);
 
     const refreshTokenHash = hashToken(refreshToken);
     const refreshExpiresAt = getRefreshTokenExpiresAt();
 
-    await client.query( // 리프레시 토큰 저장
+    await client.query(
       `insert into refresh_tokens
        (user_id, token_hash, device_name, device_id, expires_at)
        values ($1, $2, $3, $4, $5)`,
@@ -361,14 +344,14 @@ router.post("/session/exchange", async (req, res) => {
       ]
     );
 
-    await client.query( // 일회용 exchange code 사용 처리
+    await client.query(
       `update login_exchanges
        set used_at = now()
        where exchange_code_hash = $1`,
       [exchangeCodeHash]
     );
 
-    const profileResult = await client.query( // 프로필 조회
+    const profileResult = await client.query(
       `select gender, age_range, nickname
        from user_profiles
        where user_id = $1
@@ -380,27 +363,22 @@ router.post("/session/exchange", async (req, res) => {
 
     const profile = profileResult.rows[0] || {};
     const nickname = profile.nickname ?? null;
+    const profileCompleted = !!nickname;
 
-    return res.json({
-      success: true,
-      data: {
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        user: {
-          id: userId,
-          nickname,
-          gender: profile.gender ?? null,
-          age_range: profile.age_range ?? null,
-          profile_completed: false
-        },
+    return ok(res, {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user: {
+        id: userId,
+        nickname,
+        gender: profile.gender ?? null,
+        age_range: profile.age_range ?? null,
+        profile_completed: profileCompleted,
       },
     });
   } catch (error: any) {
     await client.query("ROLLBACK");
-    return res.status(500).json({
-      message: "session exchange failed",
-      error: error.message,
-    });
+    return fail(res, 500, "session exchange failed", error.message);
   } finally {
     client.release();
   }
@@ -409,17 +387,12 @@ router.post("/session/exchange", async (req, res) => {
 /**
  * 4) refresh token으로 access token 재발급
  * POST /auth/refresh
- *
- * body:
- * {
- *   "refresh_token": "..."
- * }
  */
 router.post("/refresh", async (req, res) => {
   const refreshToken = String(req.body.refresh_token || "").trim();
 
   if (!refreshToken) {
-    return res.status(400).json({ message: "refresh_token is required" });
+    return fail(res, 400, "refresh_token is required");
   }
 
   let payload: any;
@@ -428,13 +401,13 @@ router.post("/refresh", async (req, res) => {
     payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
 
     if (payload.type !== "refresh") {
-      return res.status(401).json({ message: "invalid token type" });
+      return fail(res, 401, "invalid token type");
     }
   } catch (error: any) {
     if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "refresh token expired" });
+      return fail(res, 401, "refresh token expired");
     }
-    return res.status(401).json({ message: "invalid refresh token" });
+    return fail(res, 401, "invalid refresh token");
   }
 
   const refreshTokenHash = hashToken(refreshToken);
@@ -443,7 +416,7 @@ router.post("/refresh", async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    const tokenResult = await client.query( // 리프레시 토큰 조회
+    const tokenResult = await client.query(
       `select id, user_id, expires_at, revoked_at
        from refresh_tokens
        where token_hash = $1
@@ -453,19 +426,19 @@ router.post("/refresh", async (req, res) => {
 
     if (tokenResult.rows.length === 0) {
       await client.query("ROLLBACK");
-      return res.status(401).json({ message: "refresh token not found" });
+      return fail(res, 401, "refresh token not found");
     }
 
     const tokenRow = tokenResult.rows[0];
 
-    if (tokenRow.revoked_at) { // 리프레시 토큰 폐기 처리
+    if (tokenRow.revoked_at) {
       await client.query("ROLLBACK");
-      return res.status(401).json({ message: "refresh token revoked" });
+      return fail(res, 401, "refresh token revoked");
     }
 
     if (new Date(tokenRow.expires_at).getTime() < Date.now()) {
       await client.query("ROLLBACK");
-      return res.status(401).json({ message: "refresh token expired" });
+      return fail(res, 401, "refresh token expired");
     }
 
     const userId = Number(tokenRow.user_id);
@@ -475,7 +448,6 @@ router.post("/refresh", async (req, res) => {
     const newRefreshTokenHash = hashToken(newRefreshToken);
     const newRefreshExpiresAt = getRefreshTokenExpiresAt();
 
-    // 기존 refresh token 폐기
     await client.query(
       `update refresh_tokens
        set revoked_at = now()
@@ -483,7 +455,6 @@ router.post("/refresh", async (req, res) => {
       [tokenRow.id]
     );
 
-    // 새 refresh token 저장
     await client.query(
       `insert into refresh_tokens
        (user_id, token_hash, device_name, device_id, expires_at)
@@ -499,19 +470,13 @@ router.post("/refresh", async (req, res) => {
 
     await client.query("COMMIT");
 
-    return res.json({
-      success: true,
-      data: {
-        access_token: newAccessToken,
-        refresh_token: newRefreshToken,
-      },
+    return ok(res, {
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken,
     });
   } catch (error: any) {
     await client.query("ROLLBACK");
-    return res.status(500).json({
-      message: "token refresh failed",
-      error: error.message,
-    });
+    return fail(res, 500, "token refresh failed", error.message);
   } finally {
     client.release();
   }
@@ -520,23 +485,18 @@ router.post("/refresh", async (req, res) => {
 /**
  * 5) 로그아웃
  * POST /auth/logout
- *
- * body:
- * {
- *   "refresh_token": "..."
- * }
  */
 router.post("/logout", async (req, res) => {
-  const refreshToken = String(req.body.refreshToken || "");
+  const refreshToken = String(req.body.refresh_token || "").trim();
 
   if (!refreshToken) {
-    return res.status(400).json({ message: "refreshToken is required" });
+    return fail(res, 400, "refresh_token is required");
   }
 
   try {
     jwt.verify(refreshToken, JWT_REFRESH_SECRET);
   } catch {
-    return res.status(400).json({ message: "invalid refresh token" });
+    return fail(res, 400, "invalid refresh token");
   }
 
   const refreshTokenHash = hashToken(refreshToken);
@@ -549,8 +509,7 @@ router.post("/logout", async (req, res) => {
     [refreshTokenHash]
   );
 
-  return res.json({
-    success: true,
+  return ok(res, {
     message: "logged out",
   });
 });

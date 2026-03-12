@@ -1,12 +1,15 @@
-// backend/src/middleware/authRequired.ts
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { fail } from "../utils/response.js";
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET!;
 
 export interface AuthUser {
   userId: number;
+  type?: string;
   tokenVersion?: number;
+  iat?: number;
+  exp?: number;
 }
 
 export interface AuthRequest extends Request {
@@ -22,14 +25,19 @@ export function authRequired(
   const [scheme, token] = authHeader.split(" ");
 
   if (scheme !== "Bearer" || !token) {
-    return res.status(401).json({ message: "access token required" });
+    return fail(res, 401, "access token required");
   }
 
   try {
     const payload = jwt.verify(token, JWT_ACCESS_SECRET) as AuthUser;
+
+    if (payload.type !== "access") {
+      return fail(res, 401, "invalid token type");
+    }
+
     req.user = payload;
     next();
   } catch {
-    return res.status(401).json({ message: "invalid or expired access token" });
+    return fail(res, 401, "invalid or expired access token");
   }
 }

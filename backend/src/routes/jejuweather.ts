@@ -1,5 +1,6 @@
-import { Router } from "express";
+import { Router, Response } from "express";
 import axios from "axios";
+import { ok, fail } from "../utils/response.js";
 
 const router = Router();
 
@@ -33,11 +34,15 @@ function buildWeatherDto(data: any): WeatherDto {
   };
 }
 
-router.get("/", async (req, res) => {
+router.get("/", async (_req, res: Response) => {
   try {
-    const apiKey = process.env.OPENWEATHER_API_KEY!;
+    const apiKey = process.env.OPENWEATHER_API_KEY;
 
-    // 제주 시청 
+    if (!apiKey) {
+      return fail(res, 500, "OPENWEATHER_API_KEY missing");
+    }
+
+    // 제주 시청
     const lat = 33.4996;
     const lon = 126.5312;
 
@@ -55,12 +60,13 @@ router.get("/", async (req, res) => {
       }
     );
 
-    return res.json({
+    return ok(res, {
       weather: buildWeatherDto(response.data),
     });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "날씨 API 호출 실패" });
+  } catch (err: any) {
+    console.error("GET /weather error:", err);
+
+    return fail(res, 500, "날씨 API 호출 실패");
   }
 });
 

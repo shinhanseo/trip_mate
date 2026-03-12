@@ -1,5 +1,6 @@
 import { Router } from "express";
 import axios from "axios";
+import { ok, fail } from "../utils/response.js";
 
 const router = Router();
 
@@ -91,13 +92,14 @@ function buildPlaceItem(params: {
 
 router.get("/search", async (req, res) => {
   const q = String(req.query.q || "").trim();
+
   if (!q) {
-    return res.status(400).json({ message: "q is required" });
+    return fail(res, 400, "q is required");
   }
 
   const apiKey = process.env.KAKAO_REST_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ message: "KAKAO_REST_API_KEY missing" });
+    return fail(res, 500, "KAKAO_REST_API_KEY missing");
   }
 
   const headers = {
@@ -162,12 +164,11 @@ router.get("/search", async (req, res) => {
       return true;
     });
 
-    return res.json({ places: merged });
+    return ok(res, { places: merged });
   } catch (err: any) {
     const status = err?.response?.status ?? 0;
 
-    return res.status(502).json({
-      message: "kakao api error",
+    return fail(res, 502, "kakao api error", {
       status,
       detail: err?.response?.data || String(err),
     });
@@ -177,14 +178,14 @@ router.get("/search", async (req, res) => {
 router.get("/map-pick", async (req, res) => {
   const apiKey = process.env.KAKAO_REST_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ message: "KAKAO_REST_API_KEY missing" });
+    return fail(res, 500, "KAKAO_REST_API_KEY missing");
   }
 
   const latNum = Number(req.query.lat);
   const lngNum = Number(req.query.lng);
 
   if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
-    return res.status(400).json({ message: "invalid lat/lng" });
+    return fail(res, 400, "invalid lat/lng");
   }
 
   try {
@@ -204,7 +205,7 @@ router.get("/map-pick", async (req, res) => {
 
     const doc = kakaoRes.data?.documents?.[0];
     if (!doc) {
-      return res.status(404).json({ message: "주소 결과가 없습니다." });
+      return fail(res, 404, "주소 결과가 없습니다.");
     }
 
     const road = doc.road_address?.address_name || "";
@@ -230,12 +231,11 @@ router.get("/map-pick", async (req, res) => {
       source: "map_pick",
     });
 
-    return res.json({ place });
+    return ok(res, { place });
   } catch (err: any) {
     const status = err?.response?.status ?? 0;
 
-    return res.status(502).json({
-      message: "reverse-geocode failed",
+    return fail(res, 502, "reverse-geocode failed", {
       status,
       detail: err?.response?.data || String(err),
     });

@@ -1,14 +1,14 @@
-import { Router, Request, Response } from "express";
+import { Router, Response } from "express";
 import { pool } from "../db.js";
 import { authRequired, AuthRequest } from "../middleware/authRequired.js";
 import { isValidAgeGroups } from "../utils/ageGroup.js";
+import { ok, fail } from "../utils/response.js";
 
 const router = Router();
 
 // 동행 목록 조회
 router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
   const userId = req.user!.userId;
-
   const client = await pool.connect();
 
   try {
@@ -34,40 +34,34 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
       `
     );
 
-    return res.json({
-      success: true,
-      data: {
-        userId,
-        items: meetingRes.rows.map((row) => ({
-          id: row.id,
-          title: row.title,
-          placeText: row.place_text,
-          scheduledAt: row.scheduled_at,
-          maxMembers: row.max_members,
-          currentMembers: Number(row.current_members),
-          gender: row.gender,
-          ageGroups: row.age_groups,
-          category: row.category,
-          regionPrimary: row.region_primary,
-        })),
-      },
+    return ok(res, {
+      userId,
+      items: meetingRes.rows.map((row) => ({
+        id: row.id,
+        title: row.title,
+        placeText: row.place_text,
+        scheduledAt: row.scheduled_at,
+        maxMembers: row.max_members,
+        currentMembers: Number(row.current_members),
+        gender: row.gender,
+        ageGroups: row.age_groups,
+        category: row.category,
+        regionPrimary: row.region_primary,
+      })),
     });
   } catch (error: any) {
-    return res.status(500).json({
-      success: false,
-      message: "failed to load meetings"
-    });
+    return fail(res, 500, "failed to load meetings");
   } finally {
     client.release();
   }
 });
 
-// 동행 목록 자세히 보기
+// 동행 상세 조회
 router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
   const meetingId = Number(req.params.id);
 
   if (!Number.isInteger(meetingId) || meetingId <= 0) {
-    return res.status(400).json({ message: "invalid meeting id" });
+    return fail(res, 400, "invalid meeting id");
   }
 
   const client = await pool.connect();
@@ -100,7 +94,7 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
     );
 
     if (meetingRes.rowCount === 0) {
-      return res.status(404).json({ message: "meeting not found" });
+      return fail(res, 404, "meeting not found");
     }
 
     const membersRes = await client.query(
@@ -125,45 +119,40 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
 
     const row = meetingRes.rows[0];
 
-    return res.json({
-      success: true,
-      data: {
-        item: {
-          id: row.id,
-          hostUserId: row.host_user_id,
-          title: row.title,
-          placeText: row.place_text,
-          regionPrimary: row.region_primary,
-          regionSecondary: row.region_secondary,
-          scheduledAt: row.scheduled_at,
-          maxMembers: row.max_members,
-          currentMembers: Number(row.current_members),
-          gender: row.gender,
-          ageGroups: row.age_groups,
-          category: row.category,
-          description: row.description,
-          status: row.status,
-          members: membersRes.rows.map((member) => ({
-            userId: member.user_id,
-            nickname: member.nickname,
-            profileImageUrl: member.profile_image_url,
-            role: member.role,
-            joinedAt: member.joined_at,
-          })),
-        },
+    return ok(res, {
+      item: {
+        id: row.id,
+        hostUserId: row.host_user_id,
+        title: row.title,
+        placeText: row.place_text,
+        regionPrimary: row.region_primary,
+        regionSecondary: row.region_secondary,
+        scheduledAt: row.scheduled_at,
+        maxMembers: row.max_members,
+        currentMembers: Number(row.current_members),
+        gender: row.gender,
+        ageGroups: row.age_groups,
+        category: row.category,
+        description: row.description,
+        status: row.status,
+        members: membersRes.rows.map((member) => ({
+          userId: member.user_id,
+          nickname: member.nickname,
+          profileImageUrl: member.profile_image_url,
+          role: member.role,
+          joinedAt: member.joined_at,
+        })),
       },
     });
   } catch (error: any) {
     console.error("GET /meetings/:id error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "failed to load meeting detail",
-    });
+    return fail(res, 500, "failed to load meeting detail");
   } finally {
     client.release();
   }
 });
 
+// 동행 생성
 router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
   const userId = req.user!.userId;
 
@@ -183,10 +172,7 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
   } = req.body;
 
   if (!isValidAgeGroups(ageGroups)) {
-    return res.status(400).json({
-      success: false,
-      message: "invalid ageGroups",
-    });
+    return fail(res, 400, "invalid ageGroups");
   }
 
   const client = await pool.connect();
@@ -254,9 +240,9 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
 
     await client.query("commit");
 
-    return res.json({
-      success: true,
-      data: {
+    return ok(
+      res,
+      {
         item: {
           id: meeting.id,
           hostUserId: meeting.host_user_id,
@@ -278,27 +264,23 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
           updatedAt: meeting.updated_at,
         },
       },
-    });
-
+      201
+    );
   } catch (error: any) {
     await client.query("rollback");
-    return res.status(500).json({
-      success: false,
-      message: "failed to create meeting"
-    });
-
+    return fail(res, 500, "failed to create meeting");
   } finally {
     client.release();
   }
 });
 
 // 동행 수정
-router.patch("/:id", authRequired, async (req: AuthRequest, res) => {
+router.patch("/:id", authRequired, async (req: AuthRequest, res: Response) => {
   const meetingId = Number(req.params.id);
   const userId = req.user!.userId;
 
   if (!Number.isInteger(meetingId) || meetingId <= 0) {
-    return res.status(400).json({ message: "invalid meeting id" });
+    return fail(res, 400, "invalid meeting id");
   }
 
   const {
@@ -318,10 +300,7 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res) => {
   } = req.body;
 
   if (!isValidAgeGroups(ageGroups)) {
-    return res.status(400).json({
-      success: false,
-      message: "invalid ageGroups",
-    });
+    return fail(res, 400, "invalid ageGroups");
   }
 
   const client = await pool.connect();
@@ -337,17 +316,11 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res) => {
     );
 
     if (meetingCheckRes.rowCount === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "meeting not found",
-      });
+      return fail(res, 404, "meeting not found");
     }
 
     if (meetingCheckRes.rows[0].host_user_id !== userId) {
-      return res.status(403).json({
-        success: false,
-        message: "forbidden",
-      });
+      return fail(res, 403, "forbidden");
     }
 
     const updateRes = await client.query(
@@ -417,49 +390,43 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res) => {
       [meetingId]
     );
 
-    return res.json({
-      success: true,
-      data: {
-        item: {
-          id: meeting.id,
-          hostUserId: meeting.host_user_id,
-          title: meeting.title,
-          placeText: meeting.place_text,
-          placeLat: meeting.place_lat,
-          placeLng: meeting.place_lng,
-          regionPrimary: meeting.region_primary,
-          regionSecondary: meeting.region_secondary,
-          scheduledAt: meeting.scheduled_at,
-          maxMembers: meeting.max_members,
-          currentMembers: Number(memberCountRes.rows[0].current_members),
-          gender: meeting.gender,
-          ageGroups: meeting.age_groups,
-          category: meeting.category,
-          description: meeting.description,
-          status: meeting.status,
-          createdAt: meeting.created_at,
-          updatedAt: meeting.updated_at,
-        },
+    return ok(res, {
+      item: {
+        id: meeting.id,
+        hostUserId: meeting.host_user_id,
+        title: meeting.title,
+        placeText: meeting.place_text,
+        placeLat: meeting.place_lat,
+        placeLng: meeting.place_lng,
+        regionPrimary: meeting.region_primary,
+        regionSecondary: meeting.region_secondary,
+        scheduledAt: meeting.scheduled_at,
+        maxMembers: meeting.max_members,
+        currentMembers: Number(memberCountRes.rows[0].current_members),
+        gender: meeting.gender,
+        ageGroups: meeting.age_groups,
+        category: meeting.category,
+        description: meeting.description,
+        status: meeting.status,
+        createdAt: meeting.created_at,
+        updatedAt: meeting.updated_at,
       },
     });
   } catch (error: any) {
     console.error("PATCH /meetings/:id error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "failed to update meeting",
-    });
+    return fail(res, 500, "failed to update meeting");
   } finally {
     client.release();
   }
 });
 
 // 동행 삭제
-router.delete("/:id", authRequired, async (req: AuthRequest, res) => {
+router.delete("/:id", authRequired, async (req: AuthRequest, res: Response) => {
   const meetingId = Number(req.params.id);
   const userId = req.user!.userId;
 
   if (!Number.isInteger(meetingId) || meetingId <= 0) {
-    return res.status(400).json({ message: "invalid meeting id" });
+    return fail(res, 400, "invalid meeting id");
   }
 
   const client = await pool.connect();
@@ -475,17 +442,11 @@ router.delete("/:id", authRequired, async (req: AuthRequest, res) => {
     );
 
     if (meetingCheckRes.rowCount === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "meeting not found",
-      });
+      return fail(res, 404, "meeting not found");
     }
 
     if (meetingCheckRes.rows[0].host_user_id !== userId) {
-      return res.status(403).json({
-        success: false,
-        message: "forbidden",
-      });
+      return fail(res, 403, "forbidden");
     }
 
     const meetingMemberCheckRes = await client.query(
@@ -493,17 +454,14 @@ router.delete("/:id", authRequired, async (req: AuthRequest, res) => {
       select count(id) as member_count
       from meeting_members
       where meeting_id = $1
-      and role <> 'host'
-      and status = 'joined'
+        and role <> 'host'
+        and status = 'joined'
       `,
       [meetingId]
     );
 
     if (Number(meetingMemberCheckRes.rows[0].member_count) > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "meeting has members",
-      });
+      return fail(res, 400, "meeting has members");
     }
 
     await client.query(
@@ -514,30 +472,24 @@ router.delete("/:id", authRequired, async (req: AuthRequest, res) => {
       [meetingId]
     );
 
-    return res.json({
-      success: true,
+    return ok(res, {
       message: "meeting deleted",
     });
   } catch (error: any) {
     console.error("DELETE /meetings/:id error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "failed to delete meeting",
-    });
+    return fail(res, 500, "failed to delete meeting");
   } finally {
     client.release();
   }
 });
 
-router.post("/:id/join", authRequired, async (req: AuthRequest, res) => {
+// 동행 참가
+router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) => {
   const meetingId = Number(req.params.id);
   const userId = req.user!.userId;
 
   if (!Number.isInteger(meetingId) || meetingId <= 0) {
-    return res.status(400).json({
-      success: false,
-      message: "invalid meeting id",
-    });
+    return fail(res, 400, "invalid meeting id");
   }
 
   const client = await pool.connect();
@@ -547,61 +499,57 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res) => {
 
     const joinCheckRes = await client.query(
       `
-        select id
-        from meeting_members
-        where user_id = $1 and meeting_id = $2 and status = 'joined'
+      select id
+      from meeting_members
+      where user_id = $1
+        and meeting_id = $2
+        and status = 'joined'
       `,
       [userId, meetingId]
     );
 
     if (joinCheckRes.rowCount !== 0) {
       await client.query("rollback");
-      return res.status(409).json({ message: "already joined meeting" });
+      return fail(res, 409, "already joined meeting");
     }
 
     const memberCountCheckRes = await client.query(
       `
-        select
-          m.max_members,
-          count(mm.id) as current_member_count,
-          m.status
-        from meetings m
-        left join meeting_members mm
-          on mm.meeting_id = m.id
-          and mm.status = 'joined'
-        where m.id = $1
-        group by m.id, m.max_members, m.status
+      select
+        m.max_members,
+        count(mm.id) as current_member_count,
+        m.status
+      from meetings m
+      left join meeting_members mm
+        on mm.meeting_id = m.id
+        and mm.status = 'joined'
+      where m.id = $1
+      group by m.id, m.max_members, m.status
       `,
       [meetingId]
     );
 
-
     if (memberCountCheckRes.rowCount === 0) {
       await client.query("rollback");
-      return res.status(404).json({
-        success: false,
-        message: "meeting not found",
-      });
+      return fail(res, 404, "meeting not found");
     }
 
-    if (memberCountCheckRes.rows[0].status !== 'open') {
+    if (memberCountCheckRes.rows[0].status !== "open") {
       await client.query("rollback");
-      return res.status(409).json({
-        message: "meeting status is not open"
-      });
+      return fail(res, 409, "meeting status is not open");
     }
 
     const meetingMaxMember = memberCountCheckRes.rows[0].max_members;
-    const meetingCurrentMember = memberCountCheckRes.rows[0].current_member;
+    const meetingCurrentMember = memberCountCheckRes.rows[0].current_member_count;
 
     if (Number(meetingCurrentMember) >= Number(meetingMaxMember)) {
       await client.query("rollback");
-      return res.status(409).json({ message: "over capacity meeting" });
+      return fail(res, 409, "over capacity meeting");
     }
 
     const joinRes = await client.query(
       `
-      insert into meeting_members(
+      insert into meeting_members (
         meeting_id,
         user_id,
         role,
@@ -613,42 +561,37 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res) => {
       [meetingId, userId]
     );
 
-
     if (joinRes.rowCount === 0) {
-      return res.status(500).json({ message: "failed to join meeting" });
+      await client.query("rollback");
+      return fail(res, 500, "failed to join meeting");
     }
 
     await client.query("commit");
 
-    return res.status(201).json({
-      success: true,
-      data: {
+    return ok(
+      res,
+      {
         item: {
-          id: joinRes.rows[0].id
-        }
-      }
-    })
-
+          id: joinRes.rows[0].id,
+        },
+      },
+      201
+    );
   } catch (error: any) {
     await client.query("rollback");
-    return res.status(500).json({
-      success: false,
-      message: "failed to join meeting",
-    })
+    return fail(res, 500, "failed to join meeting");
   } finally {
     client.release();
   }
 });
 
-router.post("/:id/leave", authRequired, async (req: AuthRequest, res) => {
+// 동행 나가기
+router.post("/:id/leave", authRequired, async (req: AuthRequest, res: Response) => {
   const meetingId = Number(req.params.id);
   const userId = req.user!.userId;
 
   if (!Number.isInteger(meetingId) || meetingId <= 0) {
-    return res.status(400).json({
-      success: false,
-      message: "invalid meeting id",
-    });
+    return fail(res, 400, "invalid meeting id");
   }
 
   const client = await pool.connect();
@@ -660,13 +603,16 @@ router.post("/:id/leave", authRequired, async (req: AuthRequest, res) => {
       `
       select id, meeting_id, user_id
       from meeting_members
-      where meeting_id = $1 and user_id = $2 and status = 'joined'
+      where meeting_id = $1
+        and user_id = $2
+        and status = 'joined'
       `,
       [meetingId, userId]
     );
 
     if (meetingMemberCheckRes.rowCount === 0) {
-      return res.status(400).json({ message: "not found meeting_member" });
+      await client.query("rollback");
+      return fail(res, 400, "meeting_member not found");
     }
 
     const meetingMemberId = meetingMemberCheckRes.rows[0].id;
@@ -682,21 +628,15 @@ router.post("/:id/leave", authRequired, async (req: AuthRequest, res) => {
 
     await client.query("commit");
 
-    return res.json({
-      success: true,
-      message: "meeting leaved"
+    return ok(res, {
+      message: "meeting left",
     });
-
   } catch (error: any) {
     await client.query("rollback");
-
-    return res.status(500).json({
-      success: false,
-      message: "failed to leave meeting"
-    });
+    return fail(res, 500, "failed to leave meeting");
   } finally {
     client.release();
   }
-})
+});
 
 export default router;
