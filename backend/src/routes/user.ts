@@ -2,28 +2,9 @@ import { Router } from "express";
 import { authRequired, AuthRequest } from "../middleware/authRequired.js";
 import { pool } from "../db.js";
 import { ok, fail } from "../utils/response.js";
+import { isValidNickname } from "../modules/users/user-invalid.js";
 
 const router = Router();
-
-function isValidNickname(nickname: string) {
-  const trimmedNickname = nickname.trim();
-
-  if (trimmedNickname.length < 2) {
-    return false;
-  }
-
-  if (trimmedNickname.length > 12) {
-    return false;
-  }
-
-  const nicknameRegex = /^[가-힣a-zA-Z0-9_]+$/;
-
-  if (!nicknameRegex.test(trimmedNickname)) {
-    return false;
-  }
-
-  return true;
-}
 
 router.patch("/nickname", authRequired, async (req: AuthRequest, res) => {
   const userId = req.user!.userId;
