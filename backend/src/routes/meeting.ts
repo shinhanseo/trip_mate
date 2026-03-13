@@ -72,6 +72,17 @@ router.get("/home", authRequired, async (req: AuthRequest, res: Response) => {
     );
 
     const regionGroup = meetingMapper(meetingRes.rows);
+    /*
+    const grouped = {
+      "제주시/공항권": [
+        { id: 1, category: "카페", regionPrimary: "제주시/공항권" },
+        { id: 2, category: "식사", regionPrimary: "제주시/공항권" }
+      ],
+      "애월/한담권": [
+        { id: 3, category: "액티비티", regionPrimary: "애월/한담권" }
+      ]
+    };
+    */
 
     return ok(res, {
       item: regionGroup
@@ -540,36 +551,42 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
       return fail(res, 409, "already joined meeting");
     }
 
-    const memberCountCheckRes = await client.query(
+    const meetingRes = await client.query(
       `
-      select
-        m.max_members,
-        count(mm.id) as current_member_count,
-        m.status
-      from meetings m
-      left join meeting_members mm
-        on mm.meeting_id = m.id
-        and mm.status = 'joined'
-      where m.id = $1
-      group by m.id, m.max_members, m.status
+      select id, max_members, status
+      from meetings
+      where id = $1
+      for update
       `,
       [meetingId]
     );
 
-    if (memberCountCheckRes.rowCount === 0) {
+    if (meetingRes.rowCount === 0) {
       await client.query("rollback");
       return fail(res, 404, "meeting not found");
     }
 
-    if (memberCountCheckRes.rows[0].status !== "open") {
+    const meeting = meetingRes.rows[0];
+
+    if (meeting.status !== "open") {
       await client.query("rollback");
       return fail(res, 409, "meeting status is not open");
     }
 
-    const meetingMaxMember = memberCountCheckRes.rows[0].max_members;
-    const meetingCurrentMember = memberCountCheckRes.rows[0].current_member_count;
+    const memberCountRes = await client.query(
+      `
+      select count(id) as current_member_count
+      from meeting_members
+      where meeting_id = $1
+        and status = 'joined'
+      `,
+      [meetingId]
+    );
 
-    if (Number(meetingCurrentMember) >= Number(meetingMaxMember)) {
+    const meetingMaxMember = Number(meeting.max_members);
+    const meetingCurrentMember = Number(memberCountRes.rows[0].current_member_count);
+
+    if (meetingCurrentMember >= meetingMaxMember) {
       await client.query("rollback");
       return fail(res, 409, "over capacity meeting");
     }
@@ -593,6 +610,18 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
       return fail(res, 500, "failed to join meeting");
     }
 
+    if (meetingCurrentMember + 1 === meetingMaxMember) {
+      await client.query(
+        `
+        update meetings
+        set status = 'closed'
+        where id = $1
+          and status = 'open'
+        `,
+        [meetingId]
+      );
+    }
+
     await client.query("commit");
 
     return ok(
@@ -600,6 +629,7 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
       {
         item: {
           id: joinRes.rows[0].id,
+          meetingId,
         },
       },
       201
