@@ -121,8 +121,15 @@ router.get("/home", authRequired, async (req: AuthRequest, res: Response) => {
     };
     */
 
+    const regionSummary = Object.entries(regionGroup).map(([regionPrimary, items]) => ({
+      regionPrimary,
+      firstCategory: items[0]?.category ?? null,
+      totalCount: items.length,
+      summaryText: `${items[0]?.category} · 외 ${items.length - 1}건`,
+    }));
+
     return ok(res, {
-      item: regionGroup
+      item: regionSummary
     });
   } catch (error: any) {
     return fail(res, 500, "failed to load meetings");
