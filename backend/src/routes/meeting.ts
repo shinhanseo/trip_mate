@@ -1,7 +1,7 @@
 import { Router, Response } from "express";
 import { pool } from "../db.js";
 import { authRequired, AuthRequest } from "../middleware/authRequired.js";
-import { isValidAgeGroups } from "../modules/meetings/meetings-invalid.js";
+import { isValidAgeGroups, isValidCategory, isValidGender, isValidAgeGroup } from "../modules/meetings/meetings-invalid.js";
 import { meetingMapper } from "../modules/meetings/meetings-mapper.js";
 import { ok, fail } from "../utils/response.js";
 
@@ -13,10 +13,24 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
   const category = String(req.query.category || "").trim();
   const gender = String(req.query.gender || "").trim();
   const ageGroup = String(req.query.ageGroup || "").trim();
+  const q = String(req.query.q || "").trim();
 
   const categoryFilter = category ? category : null;
   const genderFilter = gender && gender !== "any" ? gender : null;
   const ageGroupFilter = ageGroup && ageGroup !== "any" ? ageGroup : null;
+  const keywordFilter = q ? `%${q}%` : null;
+
+  if (category && !isValidCategory(category)) {
+    return fail(res, 400, "invalid category");
+  }
+
+  if (gender && !isValidGender(gender)) {
+    return fail(res, 400, "invalid gender");
+  }
+
+  if (ageGroup && !isValidAgeGroup(ageGroup)) {
+    return fail(res, 400, "invalid ageGroup");
+  }
 
   const client = await pool.connect();
 
@@ -40,11 +54,21 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
       where m.status = 'open'
         and ($1::text is null or m.category = $1)
         and ($2::text is null or m.gender = $2 or m.gender = 'any')
-        and ($3::text is null or $3 = any(m.age_groups))
+        and (
+          $3::text is null
+          or m.age_groups = array['any']::text[]
+          or $3 = any(m.age_groups)
+        )
+        and (
+          $4::text is null
+          or m.title ilike $4
+          or m.place_text ilike $4
+          or m.description ilike $4
+        )
       group by m.id
       order by m.scheduled_at asc, m.id desc
       `,
-      [categoryFilter, genderFilter, ageGroupFilter]
+      [categoryFilter, genderFilter, ageGroupFilter, keywordFilter]
     );
 
     return ok(res, {
