@@ -7,9 +7,17 @@ import { ok, fail } from "../utils/response.js";
 
 const router = Router();
 
-// 동행 목록 조회
 router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
   const userId = req.user!.userId;
+
+  const category = String(req.query.category || "").trim();
+  const gender = String(req.query.gender || "").trim();
+  const ageGroup = String(req.query.ageGroup || "").trim();
+
+  const categoryFilter = category ? category : null;
+  const genderFilter = gender && gender !== "any" ? gender : null;
+  const ageGroupFilter = ageGroup && ageGroup !== "any" ? ageGroup : null;
+
   const client = await pool.connect();
 
   try {
@@ -30,9 +38,13 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
       left join meeting_members mm
         on mm.meeting_id = m.id
       where m.status = 'open'
+        and ($1::text is null or m.category = $1)
+        and ($2::text is null or m.gender = $2 or m.gender = 'any')
+        and ($3::text is null or $3 = any(m.age_groups))
       group by m.id
       order by m.scheduled_at asc, m.id desc
-      `
+      `,
+      [categoryFilter, genderFilter, ageGroupFilter]
     );
 
     return ok(res, {
@@ -51,6 +63,7 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
       })),
     });
   } catch (error: any) {
+    console.error("GET /meetings error:", error);
     return fail(res, 500, "failed to load meetings");
   } finally {
     client.release();
