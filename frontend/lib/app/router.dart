@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import '../features/home/views/home_page.dart';
+import '../features/auth/views/signup_page.dart';
 
 class AppRouter {
   static const String home = '/';
+  static const String signup = '/signup';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case home:
         return MaterialPageRoute(
           builder: (_) => const HomePage(),
+          settings: settings,
+        );
+
+      case signup:
+        return MaterialPageRoute(
+          builder: (_) => const SignupPage(),
           settings: settings,
         );
 

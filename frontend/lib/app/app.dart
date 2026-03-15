@@ -9,7 +9,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'TripMate',
-      initialRoute: AppRouter.home,
+      initialRoute: AppRouter.signup,
       onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }
