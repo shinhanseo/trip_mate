@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authRequired, AuthRequest } from "../middleware/authRequired.js";
 import { pool } from "../db.js";
 import { ok, fail } from "../utils/response.js";
-import { isValidNickname } from "../modules/users/user-invalid.js";
+import { isValidNickname, validateProfileInput } from "../modules/users/user-invalid.js";
 
 const router = Router();
 
@@ -248,6 +248,46 @@ router.get("/meeting/ing", authRequired, async (req: AuthRequest, res) => {
     });
   } catch (error: any) {
     return fail(res, 500, "falied to load meetings");
+  } finally {
+    client.release();
+  }
+})
+
+router.patch("/profile", authRequired, async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
+
+  const profileInput = validateProfileInput(req.body);
+
+  if (!profileInput) {
+    return fail(res, 400, "invalid profile input");
+  }
+
+  const { nickname, bio, category } = profileInput;
+
+  const client = await pool.connect();
+
+  try {
+    await client.query(
+      `
+      update user_profiles
+      set nickname = $1,
+          bio = $2,
+          favorite_tags = $3,
+          updated_now = now()
+      where user_id = $4
+      `,
+      [nickname, bio, category, userId]
+    );
+
+    return ok(res, {
+      item: {
+        nickname,
+        bio,
+        category
+      }
+    }, 201);
+  } catch {
+    return fail(res, 400, "falied to set profile");
   } finally {
     client.release();
   }
