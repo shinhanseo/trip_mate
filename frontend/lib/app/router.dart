@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../features/home/views/home_page.dart';
-import '../features/auth/views/signup_page.dart';
+import '../features/auth/views/login_page.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -16,7 +16,7 @@ class AppRouter {
 
       case signup:
         return MaterialPageRoute(
-          builder: (_) => const SignupPage(),
+          builder: (_) => const LoginPage(),
           settings: settings,
         );
 
