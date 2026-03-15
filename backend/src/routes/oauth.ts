@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { pool } from "../db.js";
+import { pool } from "../db";
 import crypto from "crypto";
 import axios from "axios";
 import jwt from "jsonwebtoken";
-import { ok, fail } from "../utils/response.js";
+import { ok, fail } from "../utils/response";
 
 const router = Router();
 

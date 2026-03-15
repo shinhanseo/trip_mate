@@ -1,8 +1,8 @@
 import { Router } from "express";
 import axios from "axios";
-import { ok, fail } from "../utils/response.js";
-import type { PlaceItem } from "../modules/place/place-type.js";
-import { buildPlaceItem } from "../modules/place/place-mapper.js";
+import { ok, fail } from "../utils/response";
+import type { PlaceItem } from "../modules/place/place-type";
+import { buildPlaceItem } from "../modules/place/place-mapper";
 
 const router = Router();
 

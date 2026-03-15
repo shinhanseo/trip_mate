@@ -1,4 +1,4 @@
-import { isValidRegion } from "./meetings-invalid.js";
+import { isValidRegion } from "./meetings-invalid";
 
 type MeetingItem = {
   id: number;

@@ -1,5 +1,5 @@
-import type { PlaceItem } from './place-type.js';
-import { getJejuRegionInfo } from './place-helper.js';
+import type { PlaceItem } from './place-type';
+import { getJejuRegionInfo } from './place-helper';
 
 export function buildPlaceItem(params: {
   name: string;

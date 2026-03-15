@@ -1,9 +1,9 @@
 import { Router, Response } from "express";
-import { pool } from "../db.js";
-import { authRequired, AuthRequest } from "../middleware/authRequired.js";
-import { isValidAgeGroups, isValidCategory, isValidGender, isValidAgeGroup, isValidRegion } from "../modules/meetings/meetings-invalid.js";
-import { meetingMapper } from "../modules/meetings/meetings-mapper.js";
-import { ok, fail } from "../utils/response.js";
+import { pool } from "../db";
+import { authRequired, AuthRequest } from "../middleware/authRequired";
+import { isValidAgeGroups, isValidCategory, isValidGender, isValidAgeGroup, isValidRegion } from "../modules/meetings/meetings-invalid";
+import { meetingMapper } from "../modules/meetings/meetings-mapper";
+import { ok, fail } from "../utils/response";
 
 const router = Router();
 

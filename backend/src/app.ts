@@ -2,11 +2,11 @@ import express, { Request, Response } from 'express';
 import session from "express-session";
 import cors from 'cors';
 
-import placeSearchRouter from "./routes/placeSearch.js";
-import jejuWeatherRouter from "./routes/jejuWeather.js";
-import oauthRouter from "./routes/oauth.js";
-import meetingRouter from "./routes/meeting.js";
-import userRouter from "./routes/user.js";
+import placeSearchRouter from "./routes/placeSearch";
+import jejuWeatherRouter from "./routes/jejuWeather";
+import oauthRouter from "./routes/oauth";
+import meetingRouter from "./routes/meeting";
+import userRouter from "./routes/user";
 
 const app = express();
 const PORT = process.env.PORT || 3000;

@@ -1,6 +1,6 @@
 import { Router, Response } from "express";
 import axios from "axios";
-import { ok, fail } from "../utils/response.js";
+import { ok, fail } from "../utils/response";
 
 const router = Router();
 

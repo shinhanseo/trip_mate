@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { authRequired, AuthRequest } from "../middleware/authRequired.js";
-import { pool } from "../db.js";
-import { ok, fail } from "../utils/response.js";
-import { isValidNickname, validateProfileInput } from "../modules/users/user-invalid.js";
+import { authRequired, AuthRequest } from "../middleware/authRequired";
+import { pool } from "../db";
+import { ok, fail } from "../utils/response";
+import { isValidNickname, validateProfileInput } from "../modules/users/user-invalid";
 
 const router = Router();
 
