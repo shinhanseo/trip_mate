@@ -1,4 +1,4 @@
-package com.example.frontend
+package com.hanseo.mohaeng
 
 import io.flutter.embedding.android.FlutterActivity
 
