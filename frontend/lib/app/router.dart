@@ -1,17 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../features/home/views/home_page.dart';
 import '../features/auth/views/login_page.dart';
 import '../features/auth/views/nickname_page.dart';
+import '../features/auth/viewmodels/nickname_viewmodel.dart';
+import '../features/auth/services/auth_api.dart';
+import '../features/auth/services/token_storage.dart';
 import '../features/splash/views/splash_page.dart';
 
 class AppRouter {
+  static const String root = '/';
   static const String home = '/home';
   static const String login = '/login';
   static const String nickname = '/nickname';
   static const String splash = '/splash';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-    switch (settings.name) {
+    final name = settings.name ?? '/';
+    // query string 제거
+    final uri = Uri.parse(name);
+    final path = uri.path.isEmpty ? '/' : uri.path;
+
+    switch (path) {
+      case root:
+      case splash:
+        return MaterialPageRoute(
+          builder: (_) => const SplashPage(),
+          settings: settings,
+        );
+
       case home:
         return MaterialPageRoute(
           builder: (_) => const HomePage(),
@@ -26,13 +44,13 @@ class AppRouter {
 
       case nickname:
         return MaterialPageRoute(
-          builder: (_) => const NicknamePage(),
-          settings: settings,
-        );
-
-      case splash:
-        return MaterialPageRoute(
-          builder: (_) => const SplashPage(),
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => NicknameViewModel(
+              authApi: AuthApi(baseUrl: 'http://172.20.10.3:3000'),
+              tokenStorage: TokenStorage(),
+            ),
+            child: const NicknamePage(),
+          ),
           settings: settings,
         );
 
