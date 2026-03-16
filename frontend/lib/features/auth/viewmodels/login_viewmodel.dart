@@ -5,9 +5,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/login_response_model.dart';
 import '../services/auth_api.dart';
+import '../services/token_storage.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final AuthApi authApi;
+  final TokenStorage tokenStorage;
   final AppLinks _appLinks = AppLinks();
 
   StreamSubscription<Uri>? _linkSubscription;
@@ -16,7 +18,7 @@ class LoginViewModel extends ChangeNotifier {
   String? errorMessage;
   LoginResponseModel? loginResult;
 
-  LoginViewModel({required this.authApi});
+  LoginViewModel({required this.authApi, required this.tokenStorage});
 
   void initialize() {
     _listenDeepLink();
@@ -78,6 +80,12 @@ class LoginViewModel extends ChangeNotifier {
 
     try {
       final result = await authApi.exchangeCode(exchangeCode);
+
+      await tokenStorage.saveTokens(
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      );
+
       loginResult = result;
       errorMessage = null;
     } catch (e) {
