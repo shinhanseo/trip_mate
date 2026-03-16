@@ -8,12 +8,10 @@ class AuthApi {
   AuthApi({required this.baseUrl});
 
   String getNaverLoginUrl() {
-    // naver 로그인 시 리다이렉트할 url
     return '$baseUrl/api/auth/naver';
   }
 
   Future<LoginResponseModel> exchangeCode(String exchangeCode) async {
-    // naver 회원가입 직후 받은 정보와 exchange_code로 닉네임 생성 화면 분기
     final url = Uri.parse('$baseUrl/api/auth/session/exchange');
 
     final response = await http.post(
@@ -29,5 +27,25 @@ class AuthApi {
     }
 
     throw Exception(json['message'] ?? '로그인에 실패했습니다.');
+  }
+
+  Future<UserModel> getMe(String accessToken) async {
+    final url = Uri.parse('$baseUrl/api/user/me');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return UserModel.fromJson(json['data']);
+    }
+
+    throw Exception(json['message'] ?? '사용자 정보를 불러오지 못했습니다.');
   }
 }
