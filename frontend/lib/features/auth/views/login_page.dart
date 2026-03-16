@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_api.dart';
 import '../viewmodels/login_viewmodel.dart';
+import '../services/token_storage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
 
     viewModel = LoginViewModel(
       authApi: AuthApi(baseUrl: 'http://192.168.0.30:3000'),
+      tokenStorage: TokenStorage(),
     );
 
     viewModel.initialize();
