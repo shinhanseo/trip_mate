@@ -32,9 +32,9 @@ class _LoginPageState extends State<LoginPage> {
     if (result == null) return;
 
     if (result.user.profileCompleted) {
-      // Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/home');
     } else {
-      // Navigator.pushReplacementNamed(context, '/profile-setup');
+      Navigator.pushReplacementNamed(context, '/nickname');
     }
   }
 
