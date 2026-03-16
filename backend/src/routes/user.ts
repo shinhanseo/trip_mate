@@ -295,7 +295,7 @@ router.patch("/profile", authRequired, async (req: AuthRequest, res) => {
   }
 })
 
-router.get("/,e", authRequired, async (req: AuthRequest, res) => {
+router.get("/me", authRequired, async (req: AuthRequest, res) => {
   const userId = req.user!.userId;
 
   const client = await pool.connect();
