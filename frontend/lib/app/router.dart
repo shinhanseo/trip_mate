@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import '../features/home/views/home_page.dart';
 import '../features/auth/views/login_page.dart';
 import '../features/auth/views/nickname_page.dart';
+import '../features/splash/views/splash_page.dart';
 
 class AppRouter {
   static const String home = '/';
   static const String signup = '/signup';
   static const String nickname = '/nickname';
+  static const String splash = '/splash';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -25,6 +27,12 @@ class AppRouter {
       case nickname:
         return MaterialPageRoute(
           builder: (_) => const NicknamePage(),
+          settings: settings,
+        );
+
+      case splash:
+        return MaterialPageRoute(
+          builder: (_) => const SplashPage(),
           settings: settings,
         );
 
