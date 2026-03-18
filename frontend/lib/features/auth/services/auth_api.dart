@@ -49,6 +49,29 @@ class AuthApi {
     throw Exception(json['message'] ?? '사용자 정보를 불러오지 못했습니다.');
   }
 
+  Future<Map<String, dynamic>> updateAccessToken({
+    required String refreshToken,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/user/refresh');
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'refresh_token': refreshToken}),
+    );
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return {
+        'access_token': json['data']['access_token'],
+        'refresh_token': json['data']['refresh_token'],
+      };
+    }
+
+    throw Exception(json['meesage'] ?? "토큰 업데이트를 실패했습니다.");
+  }
+
   Future<void> updateNickname({
     required String accessToken,
     required String nickname,
