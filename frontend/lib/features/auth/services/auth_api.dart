@@ -69,7 +69,7 @@ class AuthApi {
       };
     }
 
-    throw Exception(json['message'] ?? "토큰 업데이트를 실패했습니다.");
+    throw Exception(json['message'] ?? '토큰 업데이트를 실패했습니다.');
   }
 
   Future<void> updateNickname({
