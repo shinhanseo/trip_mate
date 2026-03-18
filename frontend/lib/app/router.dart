@@ -8,6 +8,8 @@ import '../features/auth/viewmodels/nickname_viewmodel.dart';
 import '../features/auth/services/auth_api.dart';
 import '../features/auth/services/token_storage.dart';
 import '../features/splash/views/splash_page.dart';
+import '../features/chat/views/chat_page.dart';
+import '../features/mypage/views/mypage.dart';
 
 class AppRouter {
   static const String root = '/';
@@ -15,6 +17,8 @@ class AppRouter {
   static const String login = '/login';
   static const String nickname = '/nickname';
   static const String splash = '/splash';
+  static const String chat = '/chat';
+  static const String mypage = '/mypage';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final name = settings.name ?? '/';
@@ -51,6 +55,18 @@ class AppRouter {
             ),
             child: const NicknamePage(),
           ),
+          settings: settings,
+        );
+
+      case chat:
+        return MaterialPageRoute(
+          builder: (_) => const ChatPage(),
+          settings: settings,
+        );
+
+      case mypage:
+        return MaterialPageRoute(
+          builder: (_) => const MyPage(),
           settings: settings,
         );
 
