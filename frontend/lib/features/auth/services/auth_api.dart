@@ -52,7 +52,7 @@ class AuthApi {
   Future<Map<String, dynamic>> updateAccessToken({
     required String refreshToken,
   }) async {
-    final url = Uri.parse('$baseUrl/api/user/refresh');
+    final url = Uri.parse('$baseUrl/api/auth/refresh');
 
     final response = await http.post(
       url,
@@ -69,7 +69,7 @@ class AuthApi {
       };
     }
 
-    throw Exception(json['meesage'] ?? "토큰 업데이트를 실패했습니다.");
+    throw Exception(json['message'] ?? "토큰 업데이트를 실패했습니다.");
   }
 
   Future<void> updateNickname({
