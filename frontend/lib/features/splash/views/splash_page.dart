@@ -21,7 +21,7 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
 
     viewModel = SplashViewModel(
-      authApi: AuthApi(baseUrl: 'http://172.20.10.3:3000'),
+      authApi: AuthApi(baseUrl: 'http://192.168.45.203:3000'),
       tokenStorage: TokenStorage(),
     );
 

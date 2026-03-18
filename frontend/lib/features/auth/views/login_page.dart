@@ -20,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
 
     viewModel = LoginViewModel(
-      authApi: AuthApi(baseUrl: 'http://192.168.0.30:3000'),
+      authApi: AuthApi(baseUrl: 'http://192.168.45.203:3000'),
       tokenStorage: TokenStorage(),
     );
 

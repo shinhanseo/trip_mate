@@ -46,7 +46,7 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => ChangeNotifierProvider(
             create: (_) => NicknameViewModel(
-              authApi: AuthApi(baseUrl: 'http://172.20.10.3:3000'),
+              authApi: AuthApi(baseUrl: 'http://192.168.45.203:3000'),
               tokenStorage: TokenStorage(),
             ),
             child: const NicknamePage(),
