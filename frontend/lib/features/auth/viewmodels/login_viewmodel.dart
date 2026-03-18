@@ -13,6 +13,8 @@ class LoginViewModel extends ChangeNotifier {
   final AppLinks _appLinks = AppLinks();
 
   StreamSubscription<Uri>? _linkSubscription;
+  bool _isDisposed = false;
+  bool _isHandlingCallback = false;
 
   bool isLoading = false;
   String? errorMessage;
@@ -31,7 +33,7 @@ class LoginViewModel extends ChangeNotifier {
       },
       onError: (Object error) {
         errorMessage = '딥링크 처리 중 오류가 발생했습니다.';
-        notifyListeners();
+        _safeNotify();
       },
     );
   }
@@ -40,7 +42,7 @@ class LoginViewModel extends ChangeNotifier {
     try {
       errorMessage = null;
       isLoading = true;
-      notifyListeners();
+      _safeNotify();
 
       final url = Uri.parse(authApi.getNaverLoginUrl());
 
@@ -55,30 +57,38 @@ class LoginViewModel extends ChangeNotifier {
     } catch (e) {
       isLoading = false;
       errorMessage = e.toString().replaceFirst('Exception: ', '');
-      notifyListeners();
+      _safeNotify();
     }
   }
 
   Future<void> _handleLoginCallback(Uri uri) async {
+    if (_isDisposed || _isHandlingCallback) return;
+
     final success = uri.queryParameters['success'];
     final exchangeCode = uri.queryParameters['exchangeCode'];
     final message = uri.queryParameters['message'];
 
-    if (success != 'true') {
-      isLoading = false;
-      errorMessage = message ?? '네이버 로그인에 실패했습니다.';
-      notifyListeners();
+    if (success == null && exchangeCode == null && message == null) {
       return;
     }
 
-    if (exchangeCode == null || exchangeCode.isEmpty) {
-      isLoading = false;
-      errorMessage = 'exchangeCode가 없습니다.';
-      notifyListeners();
-      return;
-    }
+    _isHandlingCallback = true;
 
     try {
+      print('[Login] callback uri=$uri');
+
+      if (success != 'true') {
+        isLoading = false;
+        errorMessage = message ?? '네이버 로그인에 실패했습니다.';
+        return;
+      }
+
+      if (exchangeCode == null || exchangeCode.isEmpty) {
+        isLoading = false;
+        errorMessage = 'exchangeCode가 없습니다.';
+        return;
+      }
+
       final result = await authApi.exchangeCode(exchangeCode);
 
       await tokenStorage.saveTokens(
@@ -86,18 +96,28 @@ class LoginViewModel extends ChangeNotifier {
         refreshToken: result.refreshToken,
       );
 
+      print('[Login] tokens saved');
+
       loginResult = result;
       errorMessage = null;
     } catch (e) {
       errorMessage = e.toString().replaceFirst('Exception: ', '');
     } finally {
       isLoading = false;
+      _isHandlingCallback = false;
+      _safeNotify();
+    }
+  }
+
+  void _safeNotify() {
+    if (!_isDisposed) {
       notifyListeners();
     }
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     _linkSubscription?.cancel();
     super.dispose();
   }
