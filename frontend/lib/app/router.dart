@@ -5,11 +5,15 @@ import '../features/home/views/home_page.dart';
 import '../features/auth/views/login_page.dart';
 import '../features/auth/views/nickname_page.dart';
 import '../features/auth/viewmodels/nickname_viewmodel.dart';
+import '../features/home/viewmodels/weather_viewmodel.dart';
 import '../features/auth/services/auth_api.dart';
+import '../features/home/services/weather_api.dart';
 import '../features/auth/services/token_storage.dart';
 import '../features/splash/views/splash_page.dart';
 import '../features/chat/views/chat_page.dart';
 import '../features/mypage/views/mypage.dart';
+import '../features/home_more/views/home_more_page.dart';
+import '../features/meeting_create/views/meeting_create_page.dart';
 
 class AppRouter {
   static const String root = '/';
@@ -19,6 +23,8 @@ class AppRouter {
   static const String splash = '/splash';
   static const String chat = '/chat';
   static const String mypage = '/mypage';
+  static const String homemore = '/homemore';
+  static const String meetingcreate = '/meetingcreate';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final name = settings.name ?? '/';
@@ -36,7 +42,12 @@ class AppRouter {
 
       case home:
         return MaterialPageRoute(
-          builder: (_) => const HomePage(),
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => WeatherViewModel(
+              weatherApi: WeatherApi(baseUrl: 'http://192.168.45.203:3000'),
+            ),
+            child: const HomePage(),
+          ),
           settings: settings,
         );
 
@@ -67,6 +78,18 @@ class AppRouter {
       case mypage:
         return MaterialPageRoute(
           builder: (_) => const MyPage(),
+          settings: settings,
+        );
+
+      case homemore:
+        return MaterialPageRoute(
+          builder: (_) => const HomeMorePage(),
+          settings: settings,
+        );
+
+      case meetingcreate:
+        return MaterialPageRoute(
+          builder: (_) => const MeetingCreatePage(),
           settings: settings,
         );
 
