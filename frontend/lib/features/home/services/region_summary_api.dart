@@ -3,12 +3,12 @@ import 'package:http/http.dart' as http;
 
 import '../models/region_summary_model.dart';
 
-class RegionSummaryApi {
+class HomeRegionSummaryApi {
   final String baseUrl;
 
-  RegionSummaryApi({required this.baseUrl});
+  HomeRegionSummaryApi({required this.baseUrl});
 
-  Future<RegionSummaryModel> getRegionSummary({
+  Future<List<RegionSummaryModel>> fetchRegionSummaryList({
     required String accessToken,
   }) async {
     final url = Uri.parse('$baseUrl/api/meeting/home');
@@ -16,7 +16,7 @@ class RegionSummaryApi {
     final response = await http.get(
       url,
       headers: {
-        'Content-type': 'application/json',
+        'Content-Type': 'application/json',
         'Authorization': 'Bearer $accessToken',
       },
     );
@@ -24,9 +24,13 @@ class RegionSummaryApi {
     final Map<String, dynamic> json = jsonDecode(response.body);
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return RegionSummaryModel.fromJson(json['data']['item']);
+      final items = json['data']['item'] as List<dynamic>;
+
+      return items
+          .map((e) => RegionSummaryModel.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
 
-    throw Exception(json['message'] ?? "동행 요약 정보를 불러오지 못했습니다.");
+    throw Exception(json['message'] ?? '동행 요약 정보를 불러오지 못했습니다.');
   }
 }

@@ -4,7 +4,7 @@ import '../services/region_summary_api.dart';
 import '../../auth/services/token_storage.dart';
 
 class RegionSummaryViewModel extends ChangeNotifier {
-  final RegionSummaryApi regionSummaryApi;
+  final HomeRegionSummaryApi regionSummaryApi;
   final TokenStorage tokenStorage;
 
   RegionSummaryViewModel({
@@ -33,9 +33,8 @@ class RegionSummaryViewModel extends ChangeNotifier {
       errorMessage = null;
       notifyListeners();
 
-      final result = await regionSummaryApi.getRegionSummary(
-        accessToken: accessToken,
-      );
+      final List<RegionSummaryModel> result = await regionSummaryApi
+          .fetchRegionSummaryList(accessToken: accessToken);
 
       regionSummaries = result;
       _hasLoaded = true;
