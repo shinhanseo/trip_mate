@@ -11,15 +11,15 @@ class JejuMapCard extends StatelessWidget {
     required this.summaries,
   });
 
-  static const Map<String, Offset> regionPositions = {
-    '제주시/공항권': Offset(345, 140),
-    '애월/한담권': Offset(95, 185),
-    '협재/한림권': Offset(40, 255),
-    '함덕/조천권': Offset(575, 120),
-    '성산/우도권': Offset(690, 185),
-    '표선/성읍권': Offset(635, 295),
-    '중문/안덕권': Offset(125, 330),
-    '서귀포시내권': Offset(445, 330),
+  static const Map<String, Offset> regionFractions = {
+    '제주시/공항권': Offset(0.45, 0.25),
+    '애월/한담권': Offset(0.17, 0.36),
+    '협재/한림권': Offset(0.04, 0.55),
+    '함덕/조천권': Offset(0.73, 0.21),
+    '성산/우도권': Offset(0.80, 0.41),
+    '표선/성읍권': Offset(0.70, 0.59),
+    '중문/안덕권': Offset(0.20, 0.71),
+    '서귀포시내권': Offset(0.49, 0.68),
   };
 
   @override
@@ -44,10 +44,8 @@ class JejuMapCard extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final widthRatio = constraints.maxWidth / 900;
-          final heightRatio = constraints.maxHeight / 520;
-
           return Stack(
+            clipBehavior: Clip.none,
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -59,16 +57,19 @@ class JejuMapCard extends StatelessWidget {
                 ),
               ),
               ...summaries.map((item) {
-                final position = regionPositions[item.regionPrimary];
+                final fraction = regionFractions[item.regionPrimary];
 
-                if (position == null) {
+                if (fraction == null) {
                   return const SizedBox.shrink();
                 }
 
                 return Positioned(
-                  left: position.dx * widthRatio,
-                  top: position.dy * heightRatio,
-                  child: _SummaryBadge(text: item.summaryText),
+                  left: constraints.maxWidth * fraction.dx,
+                  top: constraints.maxHeight * fraction.dy,
+                  child: Transform.translate(
+                    offset: const Offset(-20, -10),
+                    child: _SummaryBadge(text: item.summaryText),
+                  ),
                 );
               }),
             ],
