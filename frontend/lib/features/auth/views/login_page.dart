@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../services/auth_api.dart';
 import '../viewmodels/login_viewmodel.dart';
 import '../services/token_storage.dart';
@@ -14,13 +15,14 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   late final LoginViewModel viewModel;
+  final String baseUrl = dotenv.env['BASE_URL']!;
 
   @override
   void initState() {
     super.initState();
 
     viewModel = LoginViewModel(
-      authApi: AuthApi(baseUrl: 'http://192.168.45.203:3000'),
+      authApi: AuthApi(baseUrl: baseUrl),
       tokenStorage: TokenStorage(),
     );
 

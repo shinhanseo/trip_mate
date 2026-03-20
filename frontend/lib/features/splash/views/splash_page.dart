@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../../auth/services/auth_api.dart';
 import '../../auth/services/token_storage.dart';
@@ -15,13 +16,13 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   late final SplashViewModel viewModel;
-
+  final String baseUrl = dotenv.env['BASE_URL']!;
   @override
   void initState() {
     super.initState();
 
     viewModel = SplashViewModel(
-      authApi: AuthApi(baseUrl: 'http://192.168.45.203:3000'),
+      authApi: AuthApi(baseUrl: baseUrl),
       tokenStorage: TokenStorage(),
     );
 

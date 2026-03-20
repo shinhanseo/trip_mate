@@ -4,7 +4,9 @@ import 'package:frontend/core/widgets/bottom_nav_bar.dart';
 import 'package:frontend/core/widgets/gradient_button.dart';
 
 import '../viewmodels/weather_viewmodel.dart';
+import '../viewmodels/region_summary_viewmodel.dart';
 import '../widgets/weather_meta_item.dart';
+import '../widgets/jeju_map_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,7 +29,10 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final vm = context.watch<WeatherViewModel>();
+    final summariesVm = context.watch<RegionSummaryViewModel>();
+
     final weather = vm.weather;
+    final summaries = summariesVm.regionSummaries;
 
     return Scaffold(
       backgroundColor: const Color(0xffffffff),
@@ -125,32 +130,9 @@ class _HomePageState extends State<HomePage> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      Container(
-                        width: double.infinity,
-                        height: screenHeight * 0.38,
-                        margin: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: const Color(0xffE5E7EB),
-                            width: 1.2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.12),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Image.asset(
-                            'assets/images/jeju.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
+                      JejuMapCard(
+                        screenHeight: screenHeight,
+                        summaries: summaries,
                       ),
 
                       Container(
