@@ -22,6 +22,7 @@ class _HomePageState extends State<HomePage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WeatherViewModel>().loadWeather();
+      context.read<RegionSummaryViewModel>().loadRegionSummary();
     });
   }
 
