@@ -490,6 +490,30 @@ class _HomeMorePageState extends State<HomeMorePage> {
           ),
         ),
       ),
+      floatingActionButton: Container(
+        width: 60,
+        height: 60,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Color(0xFF35C7B5), Color(0xFFD7E76C)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(30),
+            onTap: () {
+              Navigator.pushNamed(context, '/meetingcreate');
+            },
+            child: const Center(
+              child: Icon(Icons.add, color: Colors.white, size: 28),
+            ),
+          ),
+        ),
+      ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 1),
     );
   }
