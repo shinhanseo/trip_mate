@@ -12,13 +12,21 @@ class AgeGroupChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> ageGroups = ['연령 무관', '20대', '30대', '40대', '50대'];
+    final ageGroups = [
+      {'label': '연령 무관', 'value': 'any'},
+      {'label': '20대', 'value': '20s'},
+      {'label': '30대', 'value': '30s'},
+      {'label': '40대', 'value': '40s'},
+      {'label': '50대', 'value': '50s'},
+    ];
 
     return Wrap(
       spacing: 5,
       runSpacing: 10,
       children: ageGroups.map((ageGroup) {
-        final isSelected = selectedAgeGroup == ageGroup;
+        final label = ageGroup['label']!;
+        final value = ageGroup['value']!;
+        final isSelected = selectedAgeGroup == value;
 
         return Container(
           decoration: BoxDecoration(
@@ -34,18 +42,18 @@ class AgeGroupChip extends StatelessWidget {
           ),
           child: ChoiceChip(
             label: Text(
-              ageGroup,
+              label,
               style: TextStyle(
                 color: isSelected ? const Color(0xFF2563EB) : Colors.black87,
                 fontWeight: FontWeight.w600,
               ),
             ),
             selected: isSelected,
-            onSelected: (selected) {
+            onSelected: (_) {
               if (isSelected) {
                 onChanged(null);
               } else {
-                onChanged(ageGroup);
+                onChanged(value);
               }
             },
             backgroundColor: const Color(0xffffffff),

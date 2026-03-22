@@ -12,13 +12,19 @@ class GenderChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> genders = ['성별 무관', '남성', '여성'];
+    final genders = [
+      {'label': '성별 무관', 'value': 'any'},
+      {'label': '남성', 'value': 'male'},
+      {'label': '여성', 'value': 'female'},
+    ];
 
     return Wrap(
       spacing: 5,
       runSpacing: 10,
       children: genders.map((gender) {
-        final isSelected = selectedGender == gender;
+        final label = gender['label']!;
+        final value = gender['value']!;
+        final isSelected = selectedGender == value;
 
         return Container(
           decoration: BoxDecoration(
@@ -34,18 +40,18 @@ class GenderChip extends StatelessWidget {
           ),
           child: ChoiceChip(
             label: Text(
-              gender,
+              label,
               style: TextStyle(
                 color: isSelected ? const Color(0xFF2563EB) : Colors.black87,
                 fontWeight: FontWeight.w600,
               ),
             ),
             selected: isSelected,
-            onSelected: (selected) {
+            onSelected: (_) {
               if (isSelected) {
                 onChanged(null);
               } else {
-                onChanged(gender);
+                onChanged(value);
               }
             },
             backgroundColor: const Color(0xffffffff),

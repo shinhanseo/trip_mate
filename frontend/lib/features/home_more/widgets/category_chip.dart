@@ -12,19 +12,21 @@ class CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> categories = [
-      '☕ 카페',
-      '🍜 식사',
-      '🏄 액티비티',
-      '🍺 술',
-      '🚗 관광',
+    final categories = [
+      {'label': '☕ 카페', 'value': 'cafe'},
+      {'label': '🍜 식사', 'value': 'food'},
+      {'label': '🏄 액티비티', 'value': 'activity'},
+      {'label': '🍺 술', 'value': 'drink'},
+      {'label': '🚗 관광', 'value': 'tour'},
     ];
 
     return Wrap(
       spacing: 5,
       runSpacing: 10,
       children: categories.map((category) {
-        final isSelected = selectedCategory == category;
+        final value = category['value']!;
+        final label = category['label']!;
+        final isSelected = selectedCategory == value;
 
         return Container(
           decoration: BoxDecoration(
@@ -40,19 +42,15 @@ class CategoryChip extends StatelessWidget {
           ),
           child: ChoiceChip(
             label: Text(
-              category,
+              label,
               style: TextStyle(
                 color: isSelected ? const Color(0xFF2563EB) : Colors.black87,
                 fontWeight: FontWeight.w600,
               ),
             ),
             selected: isSelected,
-            onSelected: (selected) {
-              if (isSelected) {
-                onChanged(null);
-              } else {
-                onChanged(category);
-              }
+            onSelected: (_) {
+              onChanged(isSelected ? null : value);
             },
             backgroundColor: const Color(0xffffffff),
             selectedColor: const Color(0xFFE8F0FE),
