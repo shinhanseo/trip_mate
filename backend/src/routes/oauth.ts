@@ -247,11 +247,16 @@ router.get("/naver/callback", async (req, res) => {
         console.log("[NAVER CALLBACK] 37. 신규 userId:", userId);
 
         console.log("[NAVER CALLBACK] 38. user_profiles insert 시작");
+        const defaultProfileImageUrl =
+          gender === "F" || gender === "female"
+            ? process.env.DEFAULT_WOMAN_PROFILE_URL
+            : process.env.DEFAULT_MAN_PROFILE_URL;
+
         const insertProfileResult = await client.query(
-          `insert into user_profiles (user_id, gender, age_range)
-           values ($1, $2, $3)
-           returning user_id, gender, age_range`,
-          [userId, gender || null, ageRange || null]
+          `insert into user_profiles (user_id, gender, age_range, profile_image_url)
+           values ($1, $2, $3, $4)
+           returning user_id, gender, age_range, profile_image_url`,
+          [userId, gender || null, ageRange || null, defaultProfileImageUrl]
         );
         console.log("[NAVER CALLBACK] 39. user_profiles insert result:", insertProfileResult.rows);
       } else {
