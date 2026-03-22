@@ -35,56 +35,87 @@ class MeetingCard extends StatelessWidget {
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
+          const SizedBox(height: 4),
+          Text(
+            meeting.regionPrimary,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xff9CA3AF),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 14,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              const Icon(Icons.location_on_outlined, size: 24),
-              const SizedBox(width: 4),
-              Text(
-                meeting.regionPrimary,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Color(0xff8D8D8D),
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 22,
+                    color: Color(0xff6B7280),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    meeting.placeText,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xff8D8D8D),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 18),
-              const Icon(Icons.access_time, size: 24),
-              const SizedBox(width: 4),
-              Text(
-                _formatDateTime(meeting.scheduledAt),
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Color(0xff8D8D8D),
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.access_time,
+                    size: 22,
+                    color: Color(0xff6B7280),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _formatDateTime(meeting.scheduledAt),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xff8D8D8D),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
           const SizedBox(height: 16),
           Wrap(
-            spacing: 10,
-            runSpacing: 10,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               _MeetingTag(
                 text: '${meeting.currentMembers}/${meeting.maxMembers}명',
-                backgroundColor: const Color(0xffEEF3F8),
-                textColor: const Color(0xff667085),
+                backgroundColor: const Color(0xffF1F5F9),
+                textColor: const Color(0xff64748B),
               ),
               _MeetingTag(
                 text: _genderLabel(meeting.gender),
-                backgroundColor: const Color(0xffEAF7F3),
-                textColor: const Color(0xff4D7C73),
+                backgroundColor: const Color(0xffECFDF5),
+                textColor: const Color(0xff047857),
               ),
               _MeetingTag(
                 text: _ageGroupLabel(meeting.ageGroups),
-                backgroundColor: const Color(0xffECF2FF),
-                textColor: const Color(0xff4E6BB2),
+                backgroundColor: const Color(0xffEEF2FF),
+                textColor: const Color(0xff4338CA),
               ),
               _MeetingTag(
                 text: _categoryLabel(meeting.category),
-                backgroundColor: const Color(0xffFFF4E8),
-                textColor: const Color(0xffA36A2B),
+                backgroundColor: const Color(0xffFFF7ED),
+                textColor: const Color(0xffC2410C),
               ),
             ],
           ),
@@ -120,7 +151,7 @@ class MeetingCard extends StatelessWidget {
       return age;
     }).toList();
 
-    return mapped.join(',');
+    return mapped.join(' · ');
   }
 
   static String _categoryLabel(String category) {
@@ -155,10 +186,10 @@ class _MeetingTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: textColor.withValues(alpha: 0.18)),
         boxShadow: [
           BoxShadow(
@@ -171,7 +202,7 @@ class _MeetingTag extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: FontWeight.w700,
           color: textColor,
         ),
