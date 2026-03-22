@@ -13,11 +13,13 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
   const category = String(req.query.category || "").trim();
   const gender = String(req.query.gender || "").trim();
   const ageGroup = String(req.query.ageGroup || "").trim();
+  const regionPrimary = String(req.query.regionPrimary || "").trim();
   const q = String(req.query.q || "").trim();
 
   const categoryFilter = category ? category : null;
   const genderFilter = gender && gender !== "any" ? gender : null;
   const ageGroupFilter = ageGroup && ageGroup !== "any" ? ageGroup : null;
+  const regionPrimaryFilter = regionPrimary ? regionPrimary : null;
   const keywordFilter = q ? `%${q}%` : null;
 
   if (category && !isValidCategory(category)) {
@@ -30,6 +32,10 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
 
   if (ageGroup && !isValidAgeGroup(ageGroup)) {
     return fail(res, 400, "invalid ageGroup");
+  }
+
+  if (regionPrimary && !isValidRegion(regionPrimary)) {
+    return fail(res, 400, "invalid region");
   }
 
   const client = await pool.connect();
@@ -65,10 +71,13 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
           or m.place_text ilike $4
           or m.description ilike $4
         )
+        and (
+          $5::text is null or m.region_primary = $5
+        )
       group by m.id
       order by m.scheduled_at asc, m.id desc
       `,
-      [categoryFilter, genderFilter, ageGroupFilter, keywordFilter]
+      [categoryFilter, genderFilter, ageGroupFilter, keywordFilter, regionPrimaryFilter]
     );
 
     return ok(res, {
