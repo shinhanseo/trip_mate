@@ -49,19 +49,23 @@ class AppRouter {
           settings: settings,
         );
 
-      case homemore:
+      case home:
         return MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider(
-            create: (_) => HomeMoreViewModel(
-              meetingApi: MeetingApi(
-                baseUrl: baseUrl,
-                authApi: AuthApi(baseUrl: baseUrl),
-                tokenStorage: TokenStorage(),
+          builder: (_) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                create: (_) =>
+                    WeatherViewModel(weatherApi: WeatherApi(baseUrl: baseUrl)),
               ),
-            ),
-            child: const HomeMorePage(),
+
+              ChangeNotifierProvider(
+                create: (_) => RegionSummaryViewModel(
+                  regionSummaryApi: HomeRegionSummaryApi(baseUrl: baseUrl),
+                ),
+              ),
+            ],
+            child: const HomePage(),
           ),
-          settings: settings,
         );
 
       case login:
