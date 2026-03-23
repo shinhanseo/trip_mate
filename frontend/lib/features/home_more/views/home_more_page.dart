@@ -481,7 +481,16 @@ class _HomeMorePageState extends State<HomeMorePage> {
                           itemCount: items.length,
                           itemBuilder: (context, index) {
                             final meeting = items[index];
-                            return MeetingCard(meeting: meeting);
+                            return MeetingCard(
+                              meeting: meeting,
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/meetingdetail',
+                                  arguments: meeting.id,
+                                );
+                              },
+                            );
                           },
                         ),
                 ),
