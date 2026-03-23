@@ -213,7 +213,9 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
         mm.role,
         mm.joined_at,
         up.nickname,
-        up.profile_image_url
+        up.profile_image_url,
+        up.gender,
+        up.age_range
       from meeting_members mm
       join user_profiles up
         on up.user_id = mm.user_id
@@ -250,6 +252,8 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
           profileImageUrl: member.profile_image_url,
           role: member.role,
           joinedAt: member.joined_at,
+          gender: member.gender,
+          ageRange: member.age_range,
         })),
       },
     });
