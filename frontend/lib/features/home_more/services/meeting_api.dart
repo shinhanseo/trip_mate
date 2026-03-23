@@ -56,6 +56,20 @@ class MeetingApi {
     throw Exception(json['message'] ?? '동행 목록을 불러오지 못했습니다.');
   }
 
+  Future<MeetingDetailModel> getMeetingDetail({int? meetingId}) async {
+    final url = Uri.parse('$baseUrl/api/meeting/$meetingId');
+
+    http.Response response = await _authorizedGet(url);
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return MeetingDetailModel.fromJson(json['data']['item']);
+    }
+
+    throw Exception(json['message'] ?? '동행 세부 사항을 불러오지 못했습니다.');
+  }
+
   Future<http.Response> _authorizedGet(Uri url) async {
     String? accessToken = await tokenStorage.getAccessToken();
 
