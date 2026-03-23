@@ -483,12 +483,20 @@ class _HomeMorePageState extends State<HomeMorePage> {
                             final meeting = items[index];
                             return MeetingCard(
                               meeting: meeting,
-                              onTap: () {
-                                Navigator.pushNamed(
+                              onTap: () async {
+                                final result = await Navigator.pushNamed(
                                   context,
                                   '/meetingdetail',
                                   arguments: meeting.id,
                                 );
+
+                                if (!context.mounted) return;
+
+                                if (result == true) {
+                                  await context
+                                      .read<HomeMoreViewModel>()
+                                      .loadMeeting(forceRefresh: true);
+                                }
                               },
                             );
                           },
