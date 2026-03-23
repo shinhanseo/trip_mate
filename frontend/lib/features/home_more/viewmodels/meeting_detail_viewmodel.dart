@@ -13,6 +13,8 @@ class MeetingDetailViewModel extends ChangeNotifier {
   bool _hasLoaded = false;
 
   int? get currentUserId => meetingDetail?.currentUserId;
+  int? get hostUserId => meetingDetail?.hostUserId;
+  int? get currentMembers => meetingDetail?.currentMembers;
 
   Future<void> loadMeetingDetail(
     int meetingId, {
@@ -69,6 +71,23 @@ class MeetingDetailViewModel extends ChangeNotifier {
       final result = await meetingApi.getMeetingDetail(meetingId: meetingId);
       meetingDetail = result;
       _hasLoaded = true;
+    } catch (e) {
+      rethrow;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteMeeting(int meetingId) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      await meetingApi.deleteMeeting(meetingId: meetingId);
+
+      meetingDetail = null;
+      _hasLoaded = false;
     } catch (e) {
       rethrow;
     } finally {
