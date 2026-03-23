@@ -597,20 +597,25 @@ router.delete("/:id", authRequired, async (req: AuthRequest, res: Response) => {
   const client = await pool.connect();
 
   try {
+    await client.query("begin");
+
     const meetingCheckRes = await client.query(
       `
       select id, host_user_id
       from meetings
       where id = $1
+      for update
       `,
       [meetingId]
     );
 
     if (meetingCheckRes.rowCount === 0) {
+      await client.query("rollback");
       return fail(res, 404, "meeting not found");
     }
 
-    if (meetingCheckRes.rows[0].host_user_id !== userId) {
+    if (Number(meetingCheckRes.rows[0].host_user_id) !== userId) {
+      await client.query("rollback");
       return fail(res, 403, "forbidden");
     }
 
@@ -626,8 +631,17 @@ router.delete("/:id", authRequired, async (req: AuthRequest, res: Response) => {
     );
 
     if (Number(meetingMemberCheckRes.rows[0].member_count) > 0) {
+      await client.query("rollback");
       return fail(res, 400, "meeting has members");
     }
+
+    await client.query(
+      `
+      delete from meeting_members
+      where meeting_id = $1
+      `,
+      [meetingId]
+    );
 
     await client.query(
       `
@@ -637,10 +651,13 @@ router.delete("/:id", authRequired, async (req: AuthRequest, res: Response) => {
       [meetingId]
     );
 
+    await client.query("commit");
+
     return ok(res, {
       message: "meeting deleted",
     });
   } catch (error: any) {
+    await client.query("rollback");
     console.error("DELETE /meetings/:id error:", error);
     return fail(res, 500, "failed to delete meeting");
   } finally {
