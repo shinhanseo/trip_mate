@@ -212,11 +212,11 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
         mm.user_id,
         mm.role,
         mm.joined_at,
-        u.nickname,
-        u.profile_image_url
+        up.nickname,
+        up.profile_image_url
       from meeting_members mm
-      join users u
-        on u.id = mm.user_id
+      join user_profiles up
+        on up.user_id = mm.user_id
       where mm.meeting_id = $1
         and mm.status = 'joined'
       order by
