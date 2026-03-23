@@ -133,7 +133,31 @@ class MeetingCard extends StatelessWidget {
   }
 
   static String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.month}/${dateTime.day} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    final now = DateTime.now();
+
+    final isToday =
+        now.year == dateTime.year &&
+        now.month == dateTime.month &&
+        now.day == dateTime.day;
+
+    final tomorrow = now.add(const Duration(days: 1));
+    final isTomorrow =
+        tomorrow.year == dateTime.year &&
+        tomorrow.month == dateTime.month &&
+        tomorrow.day == dateTime.day;
+
+    final time =
+        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+
+    if (isToday) {
+      return '당일 $time'; // 오늘이면 시간만
+    }
+
+    if (isTomorrow) {
+      return '내일 $time'; // 내일이면 내일 + 시간
+    }
+
+    return '${dateTime.month}/${dateTime.day} $time'; // 그 외
   }
 
   static String _genderLabel(String gender) {
