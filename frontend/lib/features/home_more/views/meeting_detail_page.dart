@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/meeting_detail_viewmodel.dart';
+import '../../../core/widgets/custom_message_dialog.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 
 class MeetingDetailPage extends StatefulWidget {
   final int meetingId;
@@ -241,13 +243,36 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
             ),
             child: ElevatedButton(
               onPressed: () async {
-                if (isJoined) {
-                  await context.read<MeetingDetailViewModel>().leaveMeeting(
-                    detail.id,
-                  );
-                } else {
-                  await context.read<MeetingDetailViewModel>().joinMeeting(
-                    detail.id,
+                try {
+                  if (isJoined) {
+                    showDialog(
+                      context: context,
+                      builder: (_) => ConfirmDialog(
+                        title: '모임에서 나가시겠어요?',
+                        message: '나가면 다시 참여해야 합니다.',
+                        cancelText: '취소',
+                        confirmText: '나가기',
+                        onConfirm: () async {
+                          await context
+                              .read<MeetingDetailViewModel>()
+                              .leaveMeeting(detail.id);
+                        },
+                      ),
+                    );
+                  } else {
+                    await context.read<MeetingDetailViewModel>().joinMeeting(
+                      detail.id,
+                    );
+                  }
+                } catch (e) {
+                  if (!context.mounted) return;
+
+                  showDialog(
+                    context: context,
+                    builder: (_) => const CustomMessageDialog(
+                      title: '참여할 수 없어요',
+                      message: '동행 모집 조건에 맞지 않습니다.\n다시 한번 확인해주세요.',
+                    ),
                   );
                 }
               },
