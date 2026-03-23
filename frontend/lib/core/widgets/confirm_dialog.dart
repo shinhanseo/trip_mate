@@ -5,7 +5,7 @@ class ConfirmDialog extends StatelessWidget {
   final String message;
   final String cancelText;
   final String confirmText;
-  final VoidCallback? onConfirm;
+  final Future<void> Function()? onConfirm;
 
   const ConfirmDialog({
     super.key,
@@ -61,7 +61,9 @@ class ConfirmDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size.fromHeight(50),
                       side: const BorderSide(color: Color(0xffD1D5DB)),
@@ -91,9 +93,9 @@ class ConfirmDialog extends StatelessWidget {
                       ),
                     ),
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.pop(context);
-                        onConfirm?.call();
+                        await onConfirm?.call();
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(50),
