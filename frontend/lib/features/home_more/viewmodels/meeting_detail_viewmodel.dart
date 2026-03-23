@@ -46,7 +46,6 @@ class MeetingDetailViewModel extends ChangeNotifier {
   Future<void> joinMeeting(int meetingId) async {
     try {
       isLoading = true;
-      errorMessage = null;
       notifyListeners();
 
       await meetingApi.joinMeeting(meetingId: meetingId);
@@ -54,7 +53,7 @@ class MeetingDetailViewModel extends ChangeNotifier {
       meetingDetail = result;
       _hasLoaded = true;
     } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+      rethrow;
     } finally {
       isLoading = false;
       notifyListeners();
@@ -64,7 +63,6 @@ class MeetingDetailViewModel extends ChangeNotifier {
   Future<void> leaveMeeting(int meetingId) async {
     try {
       isLoading = true;
-      errorMessage = null;
       notifyListeners();
 
       await meetingApi.leaveMeeting(meetingId: meetingId);
@@ -72,7 +70,7 @@ class MeetingDetailViewModel extends ChangeNotifier {
       meetingDetail = result;
       _hasLoaded = true;
     } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+      rethrow;
     } finally {
       isLoading = false;
       notifyListeners();
