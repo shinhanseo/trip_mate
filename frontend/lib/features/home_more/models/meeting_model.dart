@@ -63,6 +63,8 @@ class MeetingMemberModel {
   final String? profileImageUrl;
   final String role;
   final DateTime joinedAt;
+  final String gender;
+  final String ageRange;
 
   MeetingMemberModel({
     required this.userId,
@@ -70,6 +72,8 @@ class MeetingMemberModel {
     required this.profileImageUrl,
     required this.role,
     required this.joinedAt,
+    required this.gender,
+    required this.ageRange,
   });
 
   factory MeetingMemberModel.fromJson(Map<String, dynamic> json) {
@@ -79,6 +83,8 @@ class MeetingMemberModel {
       profileImageUrl: json['profileImageUrl'] as String?,
       role: json['role'] as String,
       joinedAt: DateTime.parse(json['joinedAt'] as String),
+      gender: json['gender'] as String,
+      ageRange: json['ageRange'] as String,
     );
   }
 }
