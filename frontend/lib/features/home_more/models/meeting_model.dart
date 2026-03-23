@@ -92,6 +92,7 @@ class MeetingMemberModel {
 class MeetingDetailModel {
   final int id;
   final int hostUserId;
+  final int currentUserId;
   final String title;
   final String placeText;
   final String regionPrimary;
@@ -109,6 +110,7 @@ class MeetingDetailModel {
   MeetingDetailModel({
     required this.id,
     required this.hostUserId,
+    required this.currentUserId,
     required this.title,
     required this.placeText,
     required this.regionPrimary,
@@ -128,6 +130,7 @@ class MeetingDetailModel {
     return MeetingDetailModel(
       id: int.parse(json['id'].toString()),
       hostUserId: int.parse(json['hostUserId'].toString()),
+      currentUserId: int.parse(json['currentUserId'].toString()),
       title: json['title'] as String,
       placeText: json['placeText'] as String,
       regionPrimary: json['regionPrimary'] as String,
