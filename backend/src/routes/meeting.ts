@@ -649,6 +649,27 @@ router.delete("/:id", authRequired, async (req: AuthRequest, res: Response) => {
 });
 
 // 동행 참가
+function normalizeGender(gender: string | null | undefined) {
+  if (!gender) return null;
+
+  if (gender === "M") return "male";
+  if (gender === "F") return "female";
+
+  return gender;
+}
+
+function normalizeAgeRange(ageRange: string | null | undefined) {
+  if (!ageRange) return null;
+
+  if (ageRange === "20-29") return "20s";
+  if (ageRange === "30-39") return "30s";
+  if (ageRange === "40-49") return "40s";
+  if (ageRange === "50-59") return "50s";
+
+  return ageRange;
+}
+
+// 동행 참가
 router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) => {
   const meetingId = Number(req.params.id);
   const userId = req.user!.userId;
@@ -662,25 +683,34 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
   try {
     await client.query("begin");
 
-    const joinCheckRes = await client.query(
+    const memberRes = await client.query(
       `
-      select id
+      select id, role, status
       from meeting_members
       where user_id = $1
         and meeting_id = $2
-        and status = 'joined'
+      for update
       `,
       [userId, meetingId]
     );
 
-    if (joinCheckRes.rowCount !== 0) {
-      await client.query("rollback");
-      return fail(res, 409, "already joined meeting");
+    if (memberRes.rowCount !== 0) {
+      const member = memberRes.rows[0];
+
+      if (member.status === "joined") {
+        await client.query("rollback");
+        return fail(res, 409, "already joined meeting");
+      }
+
+      if (member.role === "host") {
+        await client.query("rollback");
+        return fail(res, 409, "host is already in meeting");
+      }
     }
 
     const meetingRes = await client.query(
       `
-      select id, max_members, status
+      select id, max_members, status, gender, age_groups
       from meetings
       where id = $1
       for update
@@ -700,6 +730,39 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
       return fail(res, 409, "meeting status is not open");
     }
 
+    const profileRes = await client.query(
+      `
+      select gender, age_range
+      from user_profiles
+      where user_id = $1
+      `,
+      [userId]
+    );
+
+    if (profileRes.rowCount === 0) {
+      await client.query("rollback");
+      return fail(res, 404, "user profile not found");
+    }
+
+    const profile = profileRes.rows[0];
+    const meetingGender = String(meeting.gender);
+    const meetingAgeGroups: string[] = meeting.age_groups ?? [];
+    const userGender = normalizeGender(profile.gender);
+    const userAgeRange = normalizeAgeRange(profile.age_range);
+
+    if (meetingGender !== "any" && userGender !== meetingGender) {
+      await client.query("rollback");
+      return fail(res, 403, "gender does not match meeting condition");
+    }
+
+    if (
+      !meetingAgeGroups.includes("any") &&
+      !meetingAgeGroups.includes(userAgeRange ?? "")
+    ) {
+      await client.query("rollback");
+      return fail(res, 403, "age range does not match meeting condition");
+    }
+
     const memberCountRes = await client.query(
       `
       select count(id) as current_member_count
@@ -711,30 +774,57 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
     );
 
     const meetingMaxMember = Number(meeting.max_members);
-    const meetingCurrentMember = Number(memberCountRes.rows[0].current_member_count);
+    const meetingCurrentMember = Number(
+      memberCountRes.rows[0].current_member_count
+    );
 
     if (meetingCurrentMember >= meetingMaxMember) {
       await client.query("rollback");
       return fail(res, 409, "over capacity meeting");
     }
 
-    const joinRes = await client.query(
-      `
-      insert into meeting_members (
-        meeting_id,
-        user_id,
-        role,
-        status
-      )
-      values ($1, $2, 'member', 'joined')
-      returning id
-      `,
-      [meetingId, userId]
-    );
+    let joinedMemberId: number;
 
-    if (joinRes.rowCount === 0) {
-      await client.query("rollback");
-      return fail(res, 500, "failed to join meeting");
+    if (memberRes.rowCount !== 0) {
+      const member = memberRes.rows[0];
+
+      const rejoinRes = await client.query(
+        `
+        update meeting_members
+        set status = 'joined'
+        where id = $1
+        returning id
+        `,
+        [member.id]
+      );
+
+      if (rejoinRes.rowCount === 0) {
+        await client.query("rollback");
+        return fail(res, 500, "failed to rejoin meeting");
+      }
+
+      joinedMemberId = rejoinRes.rows[0].id;
+    } else {
+      const joinRes = await client.query(
+        `
+        insert into meeting_members (
+          meeting_id,
+          user_id,
+          role,
+          status
+        )
+        values ($1, $2, 'member', 'joined')
+        returning id
+        `,
+        [meetingId, userId]
+      );
+
+      if (joinRes.rowCount === 0) {
+        await client.query("rollback");
+        return fail(res, 500, "failed to join meeting");
+      }
+
+      joinedMemberId = joinRes.rows[0].id;
     }
 
     if (meetingCurrentMember + 1 === meetingMaxMember) {
@@ -755,7 +845,7 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
       res,
       {
         item: {
-          id: joinRes.rows[0].id,
+          id: joinedMemberId,
           meetingId,
         },
       },
@@ -763,11 +853,14 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
     );
   } catch (error: any) {
     await client.query("rollback");
+    console.error("POST /meetings/:id/join error:", error);
     return fail(res, 500, "failed to join meeting");
   } finally {
     client.release();
   }
 });
+
+
 
 // 동행 나가기
 router.post("/:id/leave", authRequired, async (req: AuthRequest, res: Response) => {
