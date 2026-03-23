@@ -98,6 +98,20 @@ class MeetingApi {
     throw Exception(json['message'] ?? '동행 나가기에 실패했습니다.');
   }
 
+  Future<void> deleteMeeting({required int meetingId}) async {
+    final url = Uri.parse('$baseUrl/api/meeting/$meetingId');
+
+    http.Response response = await _authorizedDelete(url);
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
+    }
+
+    throw Exception(json['message'] ?? '동행 삭제에 실패했습니다.');
+  }
+
   Future<http.Response> _authorizedGet(Uri url) async {
     String? accessToken = await tokenStorage.getAccessToken();
 
@@ -172,6 +186,48 @@ class MeetingApi {
     await tokenStorage.saveRefreshToken(newRefreshToken);
 
     response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $newAccessToken',
+      },
+    );
+
+    return response;
+  }
+
+  Future<http.Response> _authorizedDelete(Uri url) async {
+    String? accessToken = await tokenStorage.getAccessToken();
+
+    http.Response response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode != 401) {
+      return response;
+    }
+
+    final refreshToken = await tokenStorage.getRefreshToken();
+
+    if (refreshToken == null || refreshToken.isEmpty) {
+      throw Exception('로그인이 만료되었습니다.');
+    }
+
+    final tokenResponse = await authApi.updateAccessToken(
+      refreshToken: refreshToken,
+    );
+
+    final newAccessToken = tokenResponse['access_token'] as String;
+    final newRefreshToken = tokenResponse['refresh_token'] as String;
+
+    await tokenStorage.saveAccessToken(newAccessToken);
+    await tokenStorage.saveRefreshToken(newRefreshToken);
+
+    response = await http.delete(
       url,
       headers: {
         'Content-Type': 'application/json',
