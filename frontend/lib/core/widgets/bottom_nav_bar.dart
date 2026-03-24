@@ -32,12 +32,18 @@ class BottomNavBar extends StatelessWidget {
       unselectedItemColor: Colors.grey,
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.chat_bubble_rounded),
+          icon: Icon(Icons.chat_bubble_outline_rounded),
+          activeIcon: Icon(Icons.chat_bubble_rounded),
           label: '채팅',
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: '홈'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home),
+          label: '홈',
+        ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
+          activeIcon: Icon(Icons.person),
           label: '마이페이지',
         ),
       ],
