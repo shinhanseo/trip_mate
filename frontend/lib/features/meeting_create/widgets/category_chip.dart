@@ -50,7 +50,7 @@ class CategoryChip extends StatelessWidget {
             ),
             selected: isSelected,
             onSelected: (_) {
-              onChanged(isSelected ? null : value);
+              onChanged(value);
             },
             backgroundColor: const Color(0xffffffff),
             selectedColor: const Color(0xFFE8F0FE),
