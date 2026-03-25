@@ -4,6 +4,7 @@ import { authRequired, AuthRequest } from "../middleware/authRequired";
 import { isValidAgeGroups, isValidCategory, isValidGender, isValidAgeGroup, isValidRegion } from "../modules/meetings/meetings-invalid";
 import { meetingMapper } from "../modules/meetings/meetings-mapper";
 import { ok, fail } from "../utils/response";
+import { getJejuRegionInfo } from "../modules/place/place-helper";
 
 const router = Router();
 
@@ -276,8 +277,7 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
     placeText,
     placeLat,
     placeLng,
-    regionPrimary,
-    regionSecondary,
+    placeAddress,
     scheduledAt,
     maxMembers,
     gender,
@@ -291,10 +291,6 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
     !title.trim() ||
     typeof placeText !== "string" ||
     !placeText.trim() ||
-    typeof regionPrimary !== "string" ||
-    !regionPrimary.trim() ||
-    typeof regionSecondary !== "string" ||
-    !regionSecondary.trim() ||
     typeof scheduledAt !== "string" ||
     !scheduledAt.trim() ||
     typeof description !== "string" ||
@@ -306,6 +302,8 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
   const latNum = Number(placeLat);
   const lngNum = Number(placeLng);
   const maxMembersNum = Number(maxMembers);
+
+  const { regionPrimary, regionSecondary } = getJejuRegionInfo(placeAddress);
 
   if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
     return fail(res, 400, "invalid place coordinates");
