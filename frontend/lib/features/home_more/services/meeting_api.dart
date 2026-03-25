@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../auth/services/auth_api.dart';
 import '../../auth/services/token_storage.dart';
 import '../models/meeting_model.dart';
+import '../../meeting_create/models/meeting_create_model.dart';
 
 class MeetingApi {
   final String baseUrl;
@@ -112,6 +113,23 @@ class MeetingApi {
     throw Exception(json['message'] ?? '동행 삭제에 실패했습니다.');
   }
 
+  Future<void> createMeeting({required MeetingCreateModel meeting}) async {
+    final url = Uri.parse('$baseUrl/api/meeting');
+
+    final response = await _authorizedPost(
+      url,
+      body: jsonEncode(meeting.toJson()),
+    );
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
+    }
+
+    throw Exception(json['message'] ?? '동행 생성에 실패했습니다.');
+  }
+
   Future<http.Response> _authorizedGet(Uri url) async {
     String? accessToken = await tokenStorage.getAccessToken();
 
@@ -154,7 +172,7 @@ class MeetingApi {
     return response;
   }
 
-  Future<http.Response> _authorizedPost(Uri url) async {
+  Future<http.Response> _authorizedPost(Uri url, {Object? body}) async {
     String? accessToken = await tokenStorage.getAccessToken();
 
     http.Response response = await http.post(
@@ -163,6 +181,7 @@ class MeetingApi {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $accessToken',
       },
+      body: body,
     );
 
     if (response.statusCode != 401) {
@@ -191,6 +210,7 @@ class MeetingApi {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $newAccessToken',
       },
+      body: body,
     );
 
     return response;
