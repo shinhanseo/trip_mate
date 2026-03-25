@@ -27,6 +27,7 @@ import '../features/meeting_create/views/meeting_create_page.dart';
 
 import '../features/meeting_create/views/meeting_place_search_page.dart';
 import '../features/meeting_create/viewmodels/place_search_viewmodel.dart';
+import '../features/meeting_create/viewmodels/meeting_create_viewmodel.dart';
 import '../features/meeting_create/services/place_search_api.dart';
 
 class AppRouter {
@@ -123,8 +124,16 @@ class AppRouter {
 
       case meetingcreate:
         return MaterialPageRoute(
-          builder: (_) => const MeetingCreatePage(),
-          settings: settings,
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => MeetingCreateViewModel(
+              meetingApi: MeetingApi(
+                baseUrl: baseUrl,
+                authApi: AuthApi(baseUrl: baseUrl),
+                tokenStorage: TokenStorage(),
+              ),
+            ),
+            child: const MeetingCreatePage(),
+          ),
         );
 
       case meetingdetail:
