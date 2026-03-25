@@ -458,33 +458,35 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
           ),
         ),
       ),
-      bottomNavigationBar: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.8,
-        height: 58,
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          child: Ink(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF35C7B5), Color(0xFFD7E76C)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+        child: SizedBox(
+          height: 58,
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            child: Ink(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF35C7B5), Color(0xFFD7E76C)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
               ),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () async {
-                await _submitMeeting();
-              },
-              child: Center(
-                child: Text(
-                  '동행 모집하기',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () async {
+                  await _submitMeeting();
+                },
+                child: const Center(
+                  child: Text(
+                    '동행 모집하기',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
