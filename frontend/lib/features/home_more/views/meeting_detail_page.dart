@@ -54,13 +54,50 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
         backgroundColor: const Color(0xffffffff),
         surfaceTintColor: const Color(0xffffffff),
         scrolledUnderElevation: 0,
-        title: Text(
-          detail.title,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                detail.title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 8),
+
+            if (isHost)
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                color: Colors.white,
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    // 수정 페이지 이동
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Center(
+                      child: Text(
+                        '수정하기',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+          ],
         ),
       ),
       body: SafeArea(
