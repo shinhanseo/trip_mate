@@ -1,8 +1,8 @@
 export function getJejuRegionInfo(address: string) {
   const normalized = address.replace(/\s+/g, " ").trim();
 
-  let regionPrimary = "기타 제주";
-  let regionSecondary = "";
+  let regionPrimary: string | null = null;
+  let regionSecondary: string | null = null;
 
   if (normalized.includes("애월읍")) {
     regionPrimary = "애월/한담권";

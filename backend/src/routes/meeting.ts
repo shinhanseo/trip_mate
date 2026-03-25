@@ -313,6 +313,10 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
     return fail(res, 400, "invalid maxMembers");
   }
 
+  if (!regionPrimary) {
+    return fail(res, 400, "제주도 지역만 선택할 수 있습니다.");
+  }
+
   if (!isValidRegion(regionPrimary)) {
     return fail(res, 400, "invalid regionPrimary");
   }
