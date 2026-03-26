@@ -43,14 +43,14 @@ class MeetingUpdateViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> updateMeeting(int meetingId, MeetingUpdateModel meeting) async {
+  Future<void> updateMeeting(MeetingUpdateModel meeting) async {
     try {
       isLoading = true;
       errorMessage = null;
       isSuccess = false;
       notifyListeners();
 
-      await meetingApi.updateMeeting(meetingId: meetingId, meeting: meeting);
+      await meetingApi.updateMeeting(meeting: meeting);
 
       isSuccess = true;
     } catch (e) {
