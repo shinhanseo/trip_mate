@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/meeting_detail_viewmodel.dart';
 import '../../../core/widgets/custom_message_dialog.dart';
 import '../../../core/widgets/confirm_dialog.dart';
+import './meeting_map_page.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 
 class MeetingDetailPage extends StatefulWidget {
@@ -285,21 +286,57 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                 height: 220,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: NaverMap(
-                    options: NaverMapViewOptions(
-                      initialCameraPosition: NCameraPosition(
-                        target: latLng,
-                        zoom: 15,
+                  child: Stack(
+                    children: [
+                      NaverMap(
+                        options: NaverMapViewOptions(
+                          initialCameraPosition: NCameraPosition(
+                            target: NLatLng(detail.placeLat, detail.placeLng),
+                            zoom: 15,
+                          ),
+                          zoomGesturesEnable: true,
+                          scrollGesturesEnable: true,
+                        ),
+                        onMapReady: (controller) async {
+                          await controller.addOverlay(
+                            NMarker(
+                              id: 'meeting_place',
+                              position: NLatLng(
+                                detail.placeLat,
+                                detail.placeLng,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                    onMapReady: (controller) async {
-                      final marker = NMarker(
-                        id: 'meeting_place',
-                        position: latLng,
-                      );
-
-                      await controller.addOverlay(marker);
-                    },
+                      Positioned(
+                        right: 12,
+                        bottom: 12,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => MeetingMapPage(
+                                  title: detail.placeText,
+                                  lat: detail.placeLat,
+                                  lng: detail.placeLng,
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text('지도 크게 보기'),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
