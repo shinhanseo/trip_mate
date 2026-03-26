@@ -244,7 +244,7 @@ class _MeetingUpdatePageState extends State<MeetingUpdatePage> {
         elevation: 0,
         scrolledUnderElevation: 0,
         title: const Text(
-          '동행 모집하기',
+          '동행 수정하기',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
       ),
@@ -561,7 +561,7 @@ class _MeetingUpdatePageState extends State<MeetingUpdatePage> {
                 },
                 child: const Center(
                   child: Text(
-                    '동행 모집하기',
+                    '동행 수정하기',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
