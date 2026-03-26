@@ -27,7 +27,7 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
-  int _memberCount = 1;
+  int _memberCount = 2;
 
   List<String> selectedAgeGroups = ['any'];
   String? selectedGender = 'any';
