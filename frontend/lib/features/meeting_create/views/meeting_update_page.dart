@@ -57,6 +57,10 @@ class _MeetingUpdatePageState extends State<MeetingUpdatePage> {
     _descriptionController.text = detail.description;
 
     _selectedPlaceName = detail.placeText;
+    _selectedPlaceLat = detail.placeLat;
+    _selectedPlaceLng = detail.placeLng;
+    _selectedPlaceAddress = detail.placeAddress;
+
     _selectedDate = DateTime(
       localDateTime.year,
       localDateTime.month,
@@ -223,9 +227,9 @@ class _MeetingUpdatePageState extends State<MeetingUpdatePage> {
 
       showDialog(
         context: context,
-        builder: (_) => const CustomMessageDialog(
+        builder: (_) => CustomMessageDialog(
           title: '수정할 수 없어요.',
-          message: '동행이 수정되지 않았습니다.\n다시 한번 확인해주세요.',
+          message: e.toString().replaceFirst('Exception: ', ''),
         ),
       );
     }
