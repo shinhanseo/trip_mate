@@ -218,7 +218,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
               const SizedBox(height: 22),
 
               const Text(
-                '모임 소개',
+                '동행 소개',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
