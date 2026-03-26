@@ -77,9 +77,9 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
-                onSelected: (value) {
+                onSelected: (value) async {
                   if (value == 'edit') {
-                    Navigator.pushNamed(
+                    final result = await Navigator.pushNamed(
                       context,
                       '/meetingupdate',
                       arguments: {
@@ -87,6 +87,16 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                         'detail': detail,
                       },
                     );
+
+                    if (!context.mounted) return;
+
+                    if (result == true) {
+                      await context.read<MeetingDetailViewModel>().refresh(
+                        widget.meetingId,
+                      );
+                    }
+
+                    return;
                   }
                 },
                 itemBuilder: (context) => const [
