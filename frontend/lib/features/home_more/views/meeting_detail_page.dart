@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/meeting_detail_viewmodel.dart';
 import '../../../core/widgets/custom_message_dialog.dart';
 import '../../../core/widgets/confirm_dialog.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
 
 class MeetingDetailPage extends StatefulWidget {
   final int meetingId;
@@ -47,6 +48,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
         ? detail.members.any((member) => member.userId == currentUserId)
         : false;
     final bool isHost = currentUserId == vm.hostUserId ? true : false;
+    final latLng = NLatLng(detail.placeLat, detail.placeLng);
 
     return Scaffold(
       backgroundColor: const Color(0xffffffff),
@@ -274,6 +276,29 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
               }),
 
               const SizedBox(height: 20),
+
+              SizedBox(
+                height: 220,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: NaverMap(
+                    options: NaverMapViewOptions(
+                      initialCameraPosition: NCameraPosition(
+                        target: latLng,
+                        zoom: 15,
+                      ),
+                    ),
+                    onMapReady: (controller) async {
+                      final marker = NMarker(
+                        id: 'meeting_place',
+                        position: latLng,
+                      );
+
+                      await controller.addOverlay(marker);
+                    },
+                  ),
+                ),
+              ),
             ],
           ),
         ),
