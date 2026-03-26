@@ -277,6 +277,10 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
 
               const SizedBox(height: 20),
 
+              const Divider(color: Color(0xffE5E7EB), thickness: 1, height: 1),
+
+              const SizedBox(height: 20),
+
               SizedBox(
                 height: 220,
                 child: ClipRRect(
