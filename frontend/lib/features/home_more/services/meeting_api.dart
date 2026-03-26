@@ -131,11 +131,8 @@ class MeetingApi {
     throw Exception(json['message'] ?? '동행 생성에 실패했습니다.');
   }
 
-  Future<void> updateMeeting({
-    required int meetingId,
-    required MeetingUpdateModel meeting,
-  }) async {
-    final url = Uri.parse('$baseUrl/api/meeting/$meetingId');
+  Future<void> updateMeeting({required MeetingUpdateModel meeting}) async {
+    final url = Uri.parse('$baseUrl/api/meeting/${meeting.meetingId}');
 
     final response = await _authorizedPatch(
       url,
