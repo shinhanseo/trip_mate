@@ -99,7 +99,7 @@ class _MyPageState extends State<MyPage> {
                 child: _CountItem(count: me.hostCount, label: '내가 만든 동행'),
               ),
               Expanded(
-                child: _CountItem(count: me.ingCount, label: '참가 예정 동행'),
+                child: _CountItem(count: me.ingCount, label: '현재 참가한 동행'),
               ),
             ],
           ),
@@ -118,7 +118,7 @@ class _MyPageState extends State<MyPage> {
           const Divider(color: Color(0xffE5E7EB), thickness: 1, height: 1),
           const SizedBox(height: 4),
 
-          _MyMeetingItem(label: '참가 예정 동행', onTap: () {}),
+          _MyMeetingItem(label: '현재 참가한 동행', onTap: () {}),
 
           const SizedBox(height: 4),
           const Divider(color: Color(0xffE5E7EB), thickness: 1, height: 1),
