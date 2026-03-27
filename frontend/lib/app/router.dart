@@ -22,7 +22,10 @@ import '../features/home_more/services/meeting_api.dart';
 
 import '../features/splash/views/splash_page.dart';
 import '../features/chat/views/chat_page.dart';
+
 import '../features/mypage/views/mypage.dart';
+import '../features/mypage/viewmodels/mypage_viewmodel.dart';
+import '../features/mypage/services/mypage_api.dart';
 
 import '../features/meeting_create/views/meeting_create_page.dart';
 import '../features/meeting_create/views/meeting_place_search_page.dart';
@@ -106,7 +109,16 @@ class AppRouter {
 
       case mypage:
         return MaterialPageRoute(
-          builder: (_) => const MyPage(),
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => MyPageViewModel(
+              myPageApi: MyPageApi(
+                baseUrl: baseUrl,
+                authApi: AuthApi(baseUrl: baseUrl),
+                tokenStorage: TokenStorage(),
+              ),
+            ),
+            child: const MyPage(),
+          ),
           settings: settings,
         );
 
