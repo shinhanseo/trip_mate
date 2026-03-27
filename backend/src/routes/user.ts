@@ -84,6 +84,8 @@ router.get("/meeting/total", authRequired, async (req: AuthRequest, res) => {
         m.id,
         m.title,
         m.place_text,
+        m.place_lat,
+        m.place_lng,
         m.scheduled_at,
         m.max_members,
         m.gender,
@@ -120,6 +122,8 @@ router.get("/meeting/total", authRequired, async (req: AuthRequest, res) => {
         id: row.id,
         title: row.title,
         placeText: row.place_text,
+        placeLat: row.place_lat,
+        placeLng: row.place_lng,
         scheduledAt: row.scheduled_at,
         maxMembers: row.max_members,
         currentMembers: Number(row.current_members),
@@ -149,6 +153,8 @@ router.get("/meeting/host", authRequired, async (req: AuthRequest, res) => {
         m.id,
         m.title,
         m.place_text,
+        m.place_lat,
+        m.place_lng,
         m.scheduled_at,
         m.max_members,
         m.gender,
@@ -186,6 +192,8 @@ router.get("/meeting/host", authRequired, async (req: AuthRequest, res) => {
         id: row.id,
         title: row.title,
         placeText: row.place_text,
+        placeLat: row.place_lat,
+        placeLng: row.place_lng,
         scheduledAt: row.scheduled_at,
         maxMembers: row.max_members,
         currentMembers: Number(row.current_members),
@@ -215,6 +223,8 @@ router.get("/meeting/ing", authRequired, async (req: AuthRequest, res) => {
         m.id,
         m.title,
         m.place_text,
+        m.place_lat,
+        m.place_lng,
         m.scheduled_at,
         m.max_members,
         m.gender,
@@ -252,6 +262,8 @@ router.get("/meeting/ing", authRequired, async (req: AuthRequest, res) => {
         id: row.id,
         title: row.title,
         placeText: row.place_text,
+        placeLat: row.place_lat,
+        placeLng: row.place_lng,
         scheduledAt: row.scheduled_at,
         maxMembers: row.max_members,
         currentMembers: Number(row.current_members),
@@ -363,11 +375,10 @@ router.get("/mypage", authRequired, async (req: AuthRequest, res) => {
         u.id,
         up.nickname,
         up.gender,
-        up.age_range
-        up.profile_image,
+        up.age_range,
+        up.profile_image_url,
         up.favorite_tags,
-        up.bio,
-        up.category
+        up.bio
       from users u
       left join user_profiles up
         on up.user_id = u.id
@@ -378,26 +389,65 @@ router.get("/mypage", authRequired, async (req: AuthRequest, res) => {
     );
 
     if (userRes.rowCount === 0) {
-      return fail(res, 400, "user not fount");
+      return fail(res, 400, "user not found");
     }
 
-    const user = userRes.rows[0];
+    const countRes = await client.query(
+      `
+      select
+        (
+          select count(*)
+          from meetings m
+          where m.host_user_id = $1
+            and m.status <> 'cancelled'
+        ) as host_count,
+        (
+          select count(*)
+          from meeting_members mm
+          join meetings m
+            on m.id = mm.meeting_id
+          where mm.user_id = $1
+            and mm.status = 'joined'
+            and m.status <> 'cancelled'
+        ) as total_count,
+        (
+          select count(*)
+          from meeting_members mm
+          join meetings m
+            on m.id = mm.meeting_id
+          where mm.user_id = $1
+            and mm.status = 'joined'
+            and m.status = 'open'
+            and m.scheduled_at >= now()
+        ) as ing_count
+      `,
+      [userId]
+    );
 
+    const user = userRes.rows[0];
+    const counts = countRes.rows[0];
     const ageRange = ageRangeMapper(user.age_range);
 
     return ok(res, {
       id: user.id,
       nickname: user.nickname,
       gender: user.gender,
-      age_range: ageRange,
+      ageRange: ageRange,
       bio: user.bio ?? null,
-      favoriteTags: user.favorite_tags,
-      profileImage: user.profile_image,
+      favoriteTags: user.favorite_tags ?? [],
+      profileImage: user.profile_image_url ?? '',
+      meetingCounts: {
+        host: Number(counts.host_count),
+        total: Number(counts.total_count),
+        ing: Number(counts.ing_count),
+      },
     });
   } catch (error: any) {
     return fail(res, 500, "failed to get my profile", error?.message);
   } finally {
     client.release();
   }
-})
+});
+
+
 export default router;
