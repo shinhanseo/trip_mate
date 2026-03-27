@@ -6,6 +6,9 @@ class MyPageModel {
   final String? bio;
   final List<String>? favoriteTags;
   final String profileImage;
+  final int totalCount;
+  final int hostCount;
+  final int ingCount;
 
   MyPageModel({
     required this.userId,
@@ -15,6 +18,9 @@ class MyPageModel {
     this.bio,
     this.favoriteTags,
     required this.profileImage,
+    required this.totalCount,
+    required this.hostCount,
+    required this.ingCount,
   });
 
   factory MyPageModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +34,9 @@ class MyPageModel {
           ?.map((e) => e.toString())
           .toList(),
       profileImage: (json['profileImage'] ?? '') as String,
+      hostCount: int.parse(json['meetingCounts']['host'].toString()),
+      totalCount: int.parse(json['meetingCounts']['total'].toString()),
+      ingCount: int.parse(json['meetingCounts']['ing'].toString()),
     );
   }
 }
