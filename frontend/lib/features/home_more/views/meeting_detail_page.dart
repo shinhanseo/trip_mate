@@ -110,7 +110,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                         '수정하기',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
