@@ -17,7 +17,21 @@ class MyPageApi {
     required this.tokenStorage,
   });
 
-  Future<MyPageModel> getMe({
+  Future<MyPageModel> getMe() async {
+    final url = Uri.parse('$baseUrl/api/user/mypage');
+
+    http.Response response = await _authorizedGet(url);
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return MyPageModel.fromJson(json['data']);
+    }
+
+    throw Exception(json['message'] ?? '내 정보를 불러오지 못했습니다.');
+  }
+
+  Future<MeetingListModel> getTotalMeetings({
     String? category,
     String? gender,
     String? ageGroup,
@@ -43,23 +57,8 @@ class MyPageApi {
     }
 
     final url = Uri.parse(
-      '$baseUrl/api/user/mypage',
+      '$baseUrl/api/user/meeting/total',
     ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
-    ;
-
-    http.Response response = await _authorizedGet(url);
-
-    final Map<String, dynamic> json = jsonDecode(response.body);
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return MyPageModel.fromJson(json['data']);
-    }
-
-    throw Exception(json['message'] ?? '내 정보를 불러오지 못했습니다.');
-  }
-
-  Future<MeetingListModel> getTotalMeetings() async {
-    final url = Uri.parse('$baseUrl/api/user/meeting/total');
 
     http.Response response = await _authorizedGet(url);
 
@@ -72,8 +71,33 @@ class MyPageApi {
     throw Exception(json['message'] ?? '동행 목록을 불러오지 못했습니다.');
   }
 
-  Future<MeetingListModel> getHostMeetings() async {
-    final url = Uri.parse('$baseUrl/api/user/meeting/host');
+  Future<MeetingListModel> getHostMeetings({
+    String? category,
+    String? gender,
+    String? ageGroup,
+    String? regionPrimary,
+    String? query,
+  }) async {
+    final queryParams = <String, String>{};
+
+    if (category != null && category.isNotEmpty) {
+      queryParams['category'] = category;
+    }
+    if (gender != null && gender.isNotEmpty) {
+      queryParams['gender'] = gender;
+    }
+    if (ageGroup != null && ageGroup.isNotEmpty) {
+      queryParams['ageGroup'] = ageGroup;
+    }
+    if (regionPrimary != null && regionPrimary.isNotEmpty) {
+      queryParams['regionPrimary'] = regionPrimary;
+    }
+    if (query != null && query.isNotEmpty) {
+      queryParams['q'] = query;
+    }
+    final url = Uri.parse(
+      '$baseUrl/api/user/meeting/host',
+    ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
 
     http.Response response = await _authorizedGet(url);
 
@@ -86,8 +110,33 @@ class MyPageApi {
     throw Exception(json['message'] ?? '동행 목록을 불러오지 못했습니다.');
   }
 
-  Future<MeetingListModel> getIngMeetings() async {
-    final url = Uri.parse('$baseUrl/api/user/meeting/ing');
+  Future<MeetingListModel> getIngMeetings({
+    String? category,
+    String? gender,
+    String? ageGroup,
+    String? regionPrimary,
+    String? query,
+  }) async {
+    final queryParams = <String, String>{};
+
+    if (category != null && category.isNotEmpty) {
+      queryParams['category'] = category;
+    }
+    if (gender != null && gender.isNotEmpty) {
+      queryParams['gender'] = gender;
+    }
+    if (ageGroup != null && ageGroup.isNotEmpty) {
+      queryParams['ageGroup'] = ageGroup;
+    }
+    if (regionPrimary != null && regionPrimary.isNotEmpty) {
+      queryParams['regionPrimary'] = regionPrimary;
+    }
+    if (query != null && query.isNotEmpty) {
+      queryParams['q'] = query;
+    }
+    final url = Uri.parse(
+      '$baseUrl/api/user/meeting/ing',
+    ).replace(queryParameters: queryParams.isEmpty ? null : queryParams);
 
     http.Response response = await _authorizedGet(url);
 
