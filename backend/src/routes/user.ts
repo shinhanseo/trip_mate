@@ -138,7 +138,6 @@ router.get("/meeting/total", authRequired, async (req: AuthRequest, res) => {
       left join meeting_members mm_all
         on mm_all.meeting_id = m.id
       where m.status <> 'cancelled'
-        and m.scheduled_at >= now()
         and ($2::text is null or m.category = $2)
         and ($3::text is null or m.gender = $3 or m.gender = 'any')
         and (
@@ -249,7 +248,6 @@ router.get("/meeting/host", authRequired, async (req: AuthRequest, res) => {
       left join meeting_members mm_all
         on mm_all.meeting_id = m.id
       where m.status <> 'cancelled'
-      and m.scheduled_at >= now()
         and ($2::text is null or m.category = $2)
         and ($3::text is null or m.gender = $3 or m.gender = 'any')
         and (
@@ -359,7 +357,6 @@ router.get("/meeting/ing", authRequired, async (req: AuthRequest, res) => {
       left join meeting_members mm_all
         on mm_all.meeting_id = m.id
       where m.status = 'open'
-        and m.scheduled_at >= now()
         and m.scheduled_at >= now()
         and ($2::text is null or m.category = $2)
         and ($3::text is null or m.gender = $3 or m.gender = 'any')
