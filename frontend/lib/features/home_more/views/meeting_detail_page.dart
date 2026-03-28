@@ -49,7 +49,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
         ? detail.members.any((member) => member.userId == currentUserId)
         : false;
     final bool isHost = currentUserId == vm.hostUserId ? true : false;
-    final latLng = NLatLng(detail.placeLat, detail.placeLng);
+    final bool isEnded = detail.scheduledAt.toLocal().isBefore(DateTime.now());
 
     return Scaffold(
       backgroundColor: const Color(0xffffffff),
@@ -72,7 +72,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
 
             const SizedBox(width: 8),
 
-            if (isHost)
+            if (isHost && !isEnded)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 color: Colors.white,
@@ -344,132 +344,134 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
           ),
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: SizedBox(
-          height: 58,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF35C7B5), Color(0xFFD7E76C)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.14),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: ElevatedButton(
-              onPressed: () async {
-                try {
-                  if (isHost) {
-                    if (vm.currentMembers != 1) {
-                      showDialog(
-                        context: context,
-                        builder: (_) => const CustomMessageDialog(
-                          title: '삭제할 수 없어요.',
-                          message:
-                              '1명 이상의 동행자가 모집된 경우 삭제할 수 없습니다.\n다시 한번 확인해주세요.',
-                        ),
-                      );
-                      return;
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder: (_) => ConfirmDialog(
-                          title: '동행을 삭제하시겠어요?',
-                          message: '삭제 시 복구는 불가능합니다.',
-                          cancelText: '취소',
-                          confirmText: '삭제하기',
-                          onConfirm: () async {
-                            try {
-                              await context
-                                  .read<MeetingDetailViewModel>()
-                                  .deleteMeeting(detail.id);
+      bottomNavigationBar: isEnded
+          ? null
+          : SafeArea(
+              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: SizedBox(
+                height: 58,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF35C7B5), Color(0xFFD7E76C)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.14),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        if (isHost) {
+                          if (vm.currentMembers != 1) {
+                            showDialog(
+                              context: context,
+                              builder: (_) => const CustomMessageDialog(
+                                title: '삭제할 수 없어요.',
+                                message:
+                                    '1명 이상의 동행자가 모집된 경우 삭제할 수 없습니다.\n다시 한번 확인해주세요.',
+                              ),
+                            );
+                            return;
+                          } else {
+                            showDialog(
+                              context: context,
+                              builder: (_) => ConfirmDialog(
+                                title: '동행을 삭제하시겠어요?',
+                                message: '삭제 시 복구는 불가능합니다.',
+                                cancelText: '취소',
+                                confirmText: '삭제하기',
+                                onConfirm: () async {
+                                  try {
+                                    await context
+                                        .read<MeetingDetailViewModel>()
+                                        .deleteMeeting(detail.id);
 
-                              if (!context.mounted) return;
-                              Navigator.pop(context, true);
-                            } catch (e) {
-                              if (!context.mounted) return;
+                                    if (!context.mounted) return;
+                                    Navigator.pop(context, true);
+                                  } catch (e) {
+                                    if (!context.mounted) return;
 
-                              showDialog(
-                                context: context,
-                                builder: (_) => CustomMessageDialog(
-                                  title: '삭제할 수 없어요.',
-                                  message: e.toString().replaceFirst(
-                                    'Exception: ',
-                                    '',
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      );
-                      return;
-                    }
-                  }
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => CustomMessageDialog(
+                                        title: '삭제할 수 없어요.',
+                                        message: e.toString().replaceFirst(
+                                          'Exception: ',
+                                          '',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            );
+                            return;
+                          }
+                        }
 
-                  if (isJoined) {
-                    showDialog(
-                      context: context,
-                      builder: (_) => ConfirmDialog(
-                        title: '동행에서 나가시겠어요?',
-                        message: '나가면 다시 참여해야 합니다.',
-                        cancelText: '취소',
-                        confirmText: '나가기',
-                        onConfirm: () async {
+                        if (isJoined) {
+                          showDialog(
+                            context: context,
+                            builder: (_) => ConfirmDialog(
+                              title: '동행에서 나가시겠어요?',
+                              message: '나가면 다시 참여해야 합니다.',
+                              cancelText: '취소',
+                              confirmText: '나가기',
+                              onConfirm: () async {
+                                await context
+                                    .read<MeetingDetailViewModel>()
+                                    .leaveMeeting(detail.id);
+                              },
+                            ),
+                          );
+                        } else {
                           await context
                               .read<MeetingDetailViewModel>()
-                              .leaveMeeting(detail.id);
-                        },
-                      ),
-                    );
-                  } else {
-                    await context.read<MeetingDetailViewModel>().joinMeeting(
-                      detail.id,
-                    );
-                  }
-                } catch (e) {
-                  if (!context.mounted) return;
+                              .joinMeeting(detail.id);
+                        }
+                      } catch (e) {
+                        if (!context.mounted) return;
 
-                  showDialog(
-                    context: context,
-                    builder: (_) => const CustomMessageDialog(
-                      title: '참여할 수 없어요',
-                      message: '동행 모집 조건에 맞지 않습니다.\n다시 한번 확인해주세요.',
+                        showDialog(
+                          context: context,
+                          builder: (_) => const CustomMessageDialog(
+                            title: '참여할 수 없어요',
+                            message: '동행 모집 조건에 맞지 않습니다.\n다시 한번 확인해주세요.',
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                     ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-              ),
-              child: Text(
-                isHost
-                    ? "동행 삭제하기"
-                    : isJoined
-                    ? '나가기'
-                    : '참여하기',
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                    child: Text(
+                      isHost
+                          ? "동행 삭제하기"
+                          : isJoined
+                          ? '동행 나가기'
+                          : '동행 참여하기',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-      ),
     );
   }
 
