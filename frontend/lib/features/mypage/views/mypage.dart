@@ -62,40 +62,52 @@ class _MyPageState extends State<MyPage> {
               ),
 
             const SizedBox(height: 18),
-
-            SizedBox(
-              height: 24,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF35C7B5), Color(0xFFD7E76C)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.14),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: SizedBox(
+                height: 24,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF35C7B5), Color(0xFFD7E76C)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
                     ),
-                  ],
-                ),
-                child: ElevatedButton(
-                  onPressed: () {},
-                  child: const Text(
-                    '프로필 편집하기',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.14),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      surfaceTintColor: Colors.transparent,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                    child: const Text(
+                      '프로필 편집하기',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
 
-            const SizedBox(height: 22),
+            const SizedBox(height: 42),
 
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -112,29 +124,29 @@ class _MyPageState extends State<MyPage> {
               ],
             ),
 
-            const SizedBox(height: 22),
+            const SizedBox(height: 42),
 
             _MyMeetingItem(label: '전체 참여한 동행', onTap: () {}),
 
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             const Divider(color: Color(0xffE5E7EB), thickness: 1, height: 1),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
 
             _MyMeetingItem(label: '내가 만든 동행', onTap: () {}),
 
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             const Divider(color: Color(0xffE5E7EB), thickness: 1, height: 1),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
 
             _MyMeetingItem(label: '현재 참가한 동행', onTap: () {}),
 
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             const Divider(color: Color(0xffE5E7EB), thickness: 1, height: 1),
 
-            const SizedBox(height: 22),
+            const SizedBox(height: 42),
 
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border.all(color: Color(0xFFE5E7EB)),
