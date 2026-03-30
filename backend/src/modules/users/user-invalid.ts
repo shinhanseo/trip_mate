@@ -22,18 +22,6 @@ export function validateProfileInput(body: any): ProfileInput | null {
     return null;
   }
 
-  if (!Array.isArray(category)) {
-    return null;
-  }
-
-  if (!category.every((item) => typeof item === "string")) {
-    return null;
-  }
-
-  if (category.length < 1 || category.length > 3) {
-    return null;
-  }
-
   return {
     nickname: nickname.trim(),
     bio: trimmedBio,
