@@ -296,9 +296,9 @@ class _UserProfile extends StatelessWidget {
                 Text(
                   bio!,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                    color: Color(0xff999999),
                   ),
                 ),
 
