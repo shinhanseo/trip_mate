@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          BigInt         @id @default(autoincrement())
+  naverUserId String         @unique @map("naver_user_id")
+  createdAt   DateTime?      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime?      @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  profile        UserProfile?
+  loginExchanges LoginExchange[]
+  refreshTokens  RefreshToken[]
+  socialAccounts SocialAccount[]
+  hostedMeetings Meeting[]       @relation("MeetingHost")
+  meetingMembers MeetingMember[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  userId          BigInt    @id @map("user_id")
+  nickname        String?   @unique @db.VarChar(20)
+  gender          String?   @db.VarChar(10)
+  ageRange        String?   @map("age_range") @db.VarChar(20)
+  favoriteTags    String[]  @default([]) @map("favorite_tags") @db.VarChar(255)
+  bio             String?   @db.VarChar(80)
+  profileImageUrl String?   @map("profile_image_url")
+  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime? @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+
+model LoginExchange {
+  id               BigInt    @id @default(autoincrement())
+  userId           BigInt    @map("user_id")
+  exchangeCodeHash String    @unique @map("exchange_code_hash")
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt           DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("login_exchanges")
+}
+
+model RefreshToken {
+  id         BigInt    @id @default(autoincrement())
+  userId     BigInt    @map("user_id")
+  tokenHash  String    @map("token_hash")
+  deviceName String?   @map("device_name") @db.VarChar(100)
+  deviceId   String?   @map("device_id") @db.VarChar(200)
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime? @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model SocialAccount {
+  id             BigInt    @id @default(autoincrement())
+  userId         BigInt    @map("user_id")
+  provider       String
+  providerUserId String    @map("provider_user_id")
+  accessToken    String?   @map("access_token")
+  refreshToken   String?   @map("refresh_token")
+  expiresAt      DateTime? @map("expires_at") @db.Timestamptz(6)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId], map: "social_accounts_provider_user_unique")
+  @@unique([userId, provider], map: "social_accounts_user_provider_unique")
+  @@map("social_accounts")
+}
+
+model Meeting {
+  id              BigInt          @id @default(autoincrement())
+  hostUserId      BigInt          @map("host_user_id")
+  title           String          @db.VarChar(50)
+  placeText       String          @map("place_text") @db.VarChar(100)
+  placeLat        Decimal?        @map("place_lat") @db.Decimal(10, 7)
+  placeLng        Decimal?        @map("place_lng") @db.Decimal(10, 7)
+  regionPrimary   String          @map("region_primary") @db.VarChar(30)
+  regionSecondary String?         @map("region_secondary") @db.VarChar(30)
+  scheduledAt     DateTime        @map("scheduled_at") @db.Timestamptz(6)
+  maxMembers      Int             @map("max_members")
+  gender          String          @db.VarChar(20)
+  category        String          @db.VarChar(20)
+  description     String
+  status          String          @default("open") @db.VarChar(15)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  ageGroups       String[]        @default(["any"]) @map("age_groups")
+  address         String?         @default("") @db.VarChar(255)
+
+  host    User            @relation("MeetingHost", fields: [hostUserId], references: [id], onDelete: Restrict)
+  members MeetingMember[]
+
+  @@map("meetings")
+}
+
+model MeetingMember {
+  id        BigInt    @id @default(autoincrement())
+  meetingId BigInt    @map("meeting_id")
+  userId    BigInt    @map("user_id")
+  role      String    @default("member") @db.VarChar(20)
+  status    String    @default("joined") @db.VarChar(20)
+  joinedAt  DateTime  @default(now()) @map("joined_at") @db.Timestamptz(6)
+  leftAt    DateTime? @map("left_at") @db.Timestamptz(6)
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, userId], map: "meeting_members_meeting_id_user_id_key")
+  @@map("meeting_members")
+}
