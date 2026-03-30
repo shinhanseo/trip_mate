@@ -29,4 +29,8 @@ class ProfileEditViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<String> uploadProfileImage(String filePath) async {
+    return await myPageApi.uploadProfileImage(filePath);
+  }
 }
