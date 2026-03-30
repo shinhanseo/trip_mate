@@ -7,6 +7,7 @@ import jejuWeatherRouter from "./routes/jejuWeather";
 import oauthRouter from "./routes/oauth";
 import meetingRouter from "./routes/meeting";
 import userRouter from "./routes/user";
+import uploadRouter from "./routes/upload";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -33,6 +34,7 @@ app.use("/api/weather", jejuWeatherRouter);
 app.use("/api/auth", oauthRouter);
 app.use("/api/meeting", meetingRouter);
 app.use("/api/user", userRouter);
+app.use("/api/upload", uploadRouter);
 
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
