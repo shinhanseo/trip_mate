@@ -4,6 +4,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 
 import 'features/auth/viewmodels/auth_state.dart';
+import 'features/auth/services/auth_api.dart';
+import 'features/auth/services/token_storage.dart';
 import 'app/app.dart';
 
 Future<void> main() async {
@@ -24,6 +26,12 @@ Future<void> main() async {
   );
 
   runApp(
-    ChangeNotifierProvider(create: (_) => AuthState(), child: const App()),
+    ChangeNotifierProvider(
+      create: (_) => AuthState(
+        authApi: AuthApi(baseUrl: dotenv.env['BASE_URL']!),
+        tokenStorage: TokenStorage(),
+      ),
+      child: const App(),
+    ),
   );
 }
