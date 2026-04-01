@@ -5,6 +5,7 @@ import '../models/mypage_model.dart';
 import '../viewmodels/mypage_viewmodel.dart';
 import '../viewmodels/my_meeting_viewmodel.dart';
 import '../../auth/viewmodels/auth_state.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
@@ -189,14 +190,23 @@ class _MyPageState extends State<MyPage> {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(12),
                   onTap: () async {
-                    await context.read<AuthState>().logout();
+                    showDialog(
+                      context: context,
+                      builder: (_) => ConfirmDialog(
+                        title: '로그아웃',
+                        message: '로그아웃하시겠습니까?',
+                        onConfirm: () async {
+                          await context.read<AuthState>().logout();
 
-                    if (!context.mounted) return;
+                          if (!context.mounted) return;
 
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/login',
-                      (route) => false,
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/login',
+                            (route) => false,
+                          );
+                        },
+                      ),
                     );
                   },
                   child: Container(
