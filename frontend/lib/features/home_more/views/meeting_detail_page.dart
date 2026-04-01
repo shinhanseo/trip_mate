@@ -259,18 +259,31 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
               const SizedBox(height: 12),
 
               ...detail.members.map((member) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: _UserProfile(
-                      nickname: member.nickname,
-                      role: member.role,
-                      gender: member.gender,
-                      ageRange: member.ageRange,
-                      profileImageUrl: member.profileImageUrl ?? '',
-                      userId: member.userId,
-                      currentUserId: detail.currentUserId,
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/userprofile',
+                        arguments: member.userId,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: _UserProfile(
+                          nickname: member.nickname,
+                          role: member.role,
+                          gender: member.gender,
+                          ageRange: member.ageRange,
+                          profileImageUrl: member.profileImageUrl ?? '',
+                          userId: member.userId,
+                          currentUserId: detail.currentUserId,
+                        ),
+                      ),
                     ),
                   ),
                 );
