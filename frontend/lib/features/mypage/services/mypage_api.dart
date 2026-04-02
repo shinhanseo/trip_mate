@@ -5,6 +5,7 @@ import '../../auth/services/auth_api.dart';
 import '../../auth/services/token_storage.dart';
 import '../models/mypage_model.dart';
 import '../models/profile_edit_model.dart';
+import '../models/total_meeting_map_model.dart';
 import '../../home_more/models/meeting_model.dart';
 
 class MyPageApi {
@@ -239,6 +240,20 @@ class MyPageApi {
     }
 
     throw Exception(json['message'] ?? '유저 프로필을 불러오지 못했습니다.');
+  }
+
+  Future<TotalMeetingMapModel> getTotalMeetingMap() async {
+    final url = Uri.parse('$baseUrl/api/user/map');
+
+    http.Response response = await _authorizedGet(url);
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return TotalMeetingMapModel.fromJson(json['data']);
+    }
+
+    throw Exception(json['message'] ?? '동행 지도를 불러오지 못했습니다.');
   }
 
   Future<http.Response> _authorizedGet(Uri url) async {
