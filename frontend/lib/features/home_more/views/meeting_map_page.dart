@@ -3,12 +3,14 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 
 class MeetingMapPage extends StatelessWidget {
   final String title;
+  final String placeText;
   final double lat;
   final double lng;
 
   const MeetingMapPage({
     super.key,
     required this.title,
+    required this.placeText,
     required this.lat,
     required this.lng,
   });
@@ -27,7 +29,11 @@ class MeetingMapPage extends StatelessWidget {
         ),
         onMapReady: (controller) async {
           await controller.addOverlay(
-            NMarker(id: 'meeting_place', position: position),
+            NMarker(
+              id: 'meeting_place',
+              position: position,
+              caption: NOverlayCaption(text: placeText, textSize: 16),
+            ),
           );
         },
       ),
