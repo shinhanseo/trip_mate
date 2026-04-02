@@ -635,4 +635,50 @@ router.get("/:id/profile", authRequired, async (req: AuthRequest, res) => {
   }
 });
 
+router.get("/map", authRequired, async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
+
+  const client = await pool.connect();
+  try {
+    const meetingRes = await client.query(
+      `
+      select
+        m.id,
+        m.title,
+        m.place_text,
+        m.place_lat,
+        m.place_lng,
+      from meetings m
+      join meeting_members mm
+        on mm.meeting_id = m.id
+        and mm.user_id = $1
+        and mm.status = 'joined'
+      where m.status <> 'cancelled'
+      group by
+        m.id,
+        m.title,
+        m.place_text,
+        m.place_lat,
+        m.place_lng
+      `,
+      [userId]
+    );
+
+    return ok(res, {
+      items: meetingRes.rows.map((row) => ({
+        id: Number(row.id),
+        title: row.title,
+        placeText: row.place_text,
+        placeLat: row.place_lat,
+        placeLng: row.place_lng,
+      })),
+    });
+  } catch (error: any) {
+    return fail(res, 500, "failed to get my map", error?.message);
+  } finally {
+    client.release();
+  }
+});
+
+
 export default router;
