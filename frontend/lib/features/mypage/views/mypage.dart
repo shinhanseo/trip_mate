@@ -182,6 +182,17 @@ class _MyPageState extends State<MyPage> {
 
               const SizedBox(height: 8),
               const Divider(color: Color(0xffE5E7EB), thickness: 1, height: 1),
+              const SizedBox(height: 8),
+
+              _MyMeetingItem(
+                label: '동행 지도 확인하기',
+                onTap: () {
+                  Navigator.pushNamed(context, '/mymeetinglist');
+                },
+              ),
+
+              const SizedBox(height: 8),
+              const Divider(color: Color(0xffE5E7EB), thickness: 1, height: 1),
 
               const SizedBox(height: 42),
 
