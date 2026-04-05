@@ -7,17 +7,19 @@ datasource db {
 }
 
 model User {
-  id          BigInt         @id @default(autoincrement())
-  naverUserId String         @unique @map("naver_user_id")
-  createdAt   DateTime?      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime?      @default(now()) @map("updated_at") @db.Timestamptz(6)
+  id          BigInt    @id @default(autoincrement())
+  naverUserId String    @unique @map("naver_user_id")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime? @default(now()) @map("updated_at") @db.Timestamptz(6)
 
-  profile        UserProfile?
-  loginExchanges LoginExchange[]
-  refreshTokens  RefreshToken[]
-  socialAccounts SocialAccount[]
-  hostedMeetings Meeting[]       @relation("MeetingHost")
-  meetingMembers MeetingMember[]
+  profile          UserProfile?
+  loginExchanges   LoginExchange[]
+  refreshTokens    RefreshToken[]
+  socialAccounts   SocialAccount[]
+  hostedMeetings   Meeting[]        @relation("MeetingHost")
+  meetingMembers   MeetingMember[]
+  chatRoomMembers  ChatRoomMember[]
+  sentChatMessages ChatMessage[]    @relation("ChatMessageSender")
 
   @@map("users")
 }
@@ -37,7 +39,6 @@ model UserProfile {
 
   @@map("user_profiles")
 }
-
 
 model LoginExchange {
   id               BigInt    @id @default(autoincrement())
@@ -87,27 +88,28 @@ model SocialAccount {
 }
 
 model Meeting {
-  id              BigInt          @id @default(autoincrement())
-  hostUserId      BigInt          @map("host_user_id")
-  title           String          @db.VarChar(50)
-  placeText       String          @map("place_text") @db.VarChar(100)
-  placeLat        Decimal?        @map("place_lat") @db.Decimal(10, 7)
-  placeLng        Decimal?        @map("place_lng") @db.Decimal(10, 7)
-  regionPrimary   String          @map("region_primary") @db.VarChar(30)
-  regionSecondary String?         @map("region_secondary") @db.VarChar(30)
-  scheduledAt     DateTime        @map("scheduled_at") @db.Timestamptz(6)
-  maxMembers      Int             @map("max_members")
-  gender          String          @db.VarChar(20)
-  category        String          @db.VarChar(20)
+  id              BigInt   @id @default(autoincrement())
+  hostUserId      BigInt   @map("host_user_id")
+  title           String   @db.VarChar(50)
+  placeText       String   @map("place_text") @db.VarChar(100)
+  placeLat        Decimal? @map("place_lat") @db.Decimal(10, 7)
+  placeLng        Decimal? @map("place_lng") @db.Decimal(10, 7)
+  regionPrimary   String   @map("region_primary") @db.VarChar(30)
+  regionSecondary String?  @map("region_secondary") @db.VarChar(30)
+  scheduledAt     DateTime @map("scheduled_at") @db.Timestamptz(6)
+  maxMembers      Int      @map("max_members")
+  gender          String   @db.VarChar(20)
+  category        String   @db.VarChar(20)
   description     String
-  status          String          @default("open") @db.VarChar(15)
-  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
-  ageGroups       String[]        @default(["any"]) @map("age_groups")
-  address         String?         @default("") @db.VarChar(255)
+  status          String   @default("open") @db.VarChar(15)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  ageGroups       String[] @default(["any"]) @map("age_groups")
+  address         String?  @default("") @db.VarChar(255)
 
-  host    User            @relation("MeetingHost", fields: [hostUserId], references: [id], onDelete: Restrict)
-  members MeetingMember[]
+  host     User            @relation("MeetingHost", fields: [hostUserId], references: [id], onDelete: Restrict)
+  members  MeetingMember[]
+  chatRoom ChatRoom?
 
   @@map("meetings")
 }
@@ -126,4 +128,52 @@ model MeetingMember {
 
   @@unique([meetingId, userId], map: "meeting_members_meeting_id_user_id_key")
   @@map("meeting_members")
+}
+
+model ChatRoom {
+  id        BigInt   @id @default(autoincrement())
+  meetingId BigInt   @unique @map("meeting_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  meeting  Meeting          @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  members  ChatRoomMember[]
+  messages ChatMessage[]
+
+  @@map("chat_rooms")
+}
+
+model ChatRoomMember {
+  id                BigInt    @id @default(autoincrement())
+  roomId            BigInt    @map("room_id")
+  userId            BigInt    @map("user_id")
+  joinedAt          DateTime  @default(now()) @map("joined_at") @db.Timestamptz(6)
+  lastReadMessageId BigInt?   @map("last_read_message_id")
+  lastReadAt        DateTime? @map("last_read_at") @db.Timestamptz(6)
+
+  room            ChatRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadMessage ChatMessage? @relation("ChatRoomMemberLastReadMessage", fields: [lastReadMessageId], references: [id], onDelete: SetNull)
+
+  @@unique([roomId, userId], map: "chat_room_members_room_id_user_id_key")
+  @@index([userId], map: "chat_room_members_user_id_idx")
+  @@index([lastReadMessageId], map: "chat_room_members_last_read_message_id_idx")
+  @@map("chat_room_members")
+}
+
+model ChatMessage {
+  id        BigInt   @id @default(autoincrement())
+  roomId    BigInt   @map("room_id")
+  senderId  BigInt   @map("sender_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  room              ChatRoom         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender            User             @relation("ChatMessageSender", fields: [senderId], references: [id], onDelete: Restrict)
+  lastReadByMembers ChatRoomMember[] @relation("ChatRoomMemberLastReadMessage")
+
+  @@index([roomId, createdAt], map: "chat_messages_room_id_created_at_idx")
+  @@index([senderId], map: "chat_messages_sender_id_idx")
+  @@map("chat_messages")
 }
