@@ -414,6 +414,31 @@ router.post("/", authRequired, async (req: AuthRequest, res: Response) => {
       [meeting.id, userId]
     );
 
+    const chatRoomRes = await client.query(
+      `
+      insert into chat_rooms (
+        meeting_id
+      )
+      values ($1)
+      returning id
+      `,
+      [meeting.id]
+    );
+
+    const roomId = chatRoomRes.rows[0].id;
+
+    await client.query(
+      `
+      insert into chat_room_members (
+        room_id,
+        user_id,
+        joined_at
+      )
+      values ($1, $2, now())
+      `,
+      [roomId, userId]
+    );
+
     await client.query("commit");
 
     return ok(
@@ -927,6 +952,41 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
       );
     }
 
+    const roomRes = await client.query(
+      `
+      select id
+      from chat_rooms
+      where meeting_id = $1
+      for update
+      `,
+      [meetingId]
+    );
+
+    if (roomRes.rowCount === 0) {
+      await client.query("rollback");
+      return fail(res, 404, "chat room not found");
+    }
+
+    const roomId = roomRes.rows[0].id;
+
+    await client.query(
+      `
+      insert into chat_room_members (
+        room_id,
+        user_id,
+        joined_at,
+        last_read_message_id,
+        last_read_at
+      )
+      values ($1, $2, now(), null, null)
+      on conflict (room_id, user_id) do update
+      set joined_at = excluded.joined_at,
+          last_read_message_id = null,
+          last_read_at = null
+      `,
+      [roomId, userId]
+    );
+
     await client.query("commit");
 
     return ok(
@@ -1010,6 +1070,28 @@ router.post("/:id/leave", authRequired, async (req: AuthRequest, res: Response) 
       `,
       [meetingMemberId]
     );
+
+    const roomRes = await client.query(
+      `
+      select id
+      from chat_rooms
+      where meeting_id = $1
+      `,
+      [meetingId]
+    );
+
+    if (roomRes.rowCount !== 0) {
+      const roomId = roomRes.rows[0].id;
+
+      await client.query(
+        `
+        delete from chat_room_members
+        where room_id = $1
+          and user_id = $2
+        `,
+        [roomId, userId]
+      );
+    }
 
     const memberCountRes = await client.query(
       `
