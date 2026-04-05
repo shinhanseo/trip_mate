@@ -43,8 +43,6 @@ class _TotalMeetingMapViewState extends State<TotalMeetingMapView> {
       );
     }
 
-    final first = vm.totalMeetingMap.first;
-
     return Scaffold(
       backgroundColor: const Color(0xffffffff),
       appBar: AppBar(
