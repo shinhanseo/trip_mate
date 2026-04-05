@@ -187,7 +187,7 @@ class _MyPageState extends State<MyPage> {
               _MyMeetingItem(
                 label: '동행 지도 확인하기',
                 onTap: () {
-                  Navigator.pushNamed(context, '/mymeetinglist');
+                  Navigator.pushNamed(context, '/totalmeetingmap');
                 },
               ),
 
