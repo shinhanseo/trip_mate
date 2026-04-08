@@ -19,40 +19,43 @@ router.get(
     const client = await pool.connect();
 
     try {
-      const memberRes = await client.query(
+      const roomMemberRes = await client.query(
         `
-        select crm.joined_at, cr.id as room_id
+        select
+          cr.id as room_id,
+          crm.joined_at,
+          m.id as meeting_id,
+          m.host_user_id,
+          m.title,
+          m.place_text,
+          m.scheduled_at,
+          m.max_members,
+          m.status,
+          count(mm.id) filter (where mm.status = 'joined') as current_members
         from chat_rooms cr
         join chat_room_members crm
           on crm.room_id = cr.id
          and crm.user_id = $2
+        join meetings m
+          on m.id = cr.meeting_id
+        left join meeting_members mm
+          on mm.meeting_id = m.id
         where cr.meeting_id = $1
+        group by
+          cr.id,
+          crm.joined_at,
+          m.id
         `,
         [meetingId, userId]
       );
 
-      if (memberRes.rowCount === 0) {
+      if (roomMemberRes.rowCount === 0) {
         return fail(res, 403, "forbidden");
       }
 
-      const joinedAt = memberRes.rows[0].joined_at;
-
-      const roomRes = await client.query(
-        `
-        select id
-        from chat_rooms
-        where meeting_id = $1
-        `,
-        [meetingId]
-      );
-
-      if (roomRes.rowCount === 0) {
-        return ok(res, {
-          items: [],
-        });
-      }
-
-      const roomId = roomRes.rows[0].id;
+      const room = roomMemberRes.rows[0];
+      const roomId = room.room_id;
+      const joinedAt = room.joined_at;
 
       const messageRes = await client.query(
         `
@@ -78,16 +81,29 @@ router.get(
       );
 
       return ok(res, {
-        items: messageRes.rows.map((row) => ({
-          id: Number(row.id),
-          roomId: Number(row.room_id),
-          senderId: Number(row.sender_id),
-          senderNickname: row.sender_nickname,
-          senderProfileImageUrl: row.sender_profile_image_url,
-          content: row.content,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-        })),
+        item: {
+          roomId: Number(room.room_id),
+          meeting: {
+            id: Number(room.meeting_id),
+            hostUserId: Number(room.host_user_id),
+            title: room.title,
+            placeText: room.place_text,
+            scheduledAt: room.scheduled_at,
+            maxMembers: Number(room.max_members),
+            currentMembers: Number(room.current_members),
+            status: room.status,
+          },
+          messages: messageRes.rows.map((row) => ({
+            id: Number(row.id),
+            roomId: Number(row.room_id),
+            senderId: Number(row.sender_id),
+            senderNickname: row.sender_nickname,
+            senderProfileImageUrl: row.sender_profile_image_url,
+            content: row.content,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+          })),
+        },
       });
     } catch (error: any) {
       console.error("GET /chat/meetings/:meetingId/messages error:", error);
