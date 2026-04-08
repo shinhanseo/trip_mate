@@ -25,6 +25,8 @@ import '../features/splash/views/splash_page.dart';
 import '../features/chat/views/chat_list_page.dart';
 import '../features/chat/viewmodels/chat_list_viewmodel.dart';
 import '../features/chat/services/chat_api.dart';
+import '../features/chat/views/chat_detail_page.dart';
+import '../features/chat/viewmodels/chat_detail_viewmodel.dart';
 
 import '../features/mypage/views/mypage.dart';
 import '../features/mypage/viewmodels/mypage_viewmodel.dart';
@@ -63,6 +65,7 @@ class AppRouter {
   static const String myprofileedit = '/myprofileedit';
   static const String userprofile = '/userprofile';
   static const String totalmeetingmap = '/totalmeetingmap';
+  static const String chatdetail = '/chatdetail';
 
   static final baseUrl = dotenv.env['BASE_URL']!;
 
@@ -128,6 +131,23 @@ class AppRouter {
               ),
             ),
             child: const ChatListPage(),
+          ),
+          settings: settings,
+        );
+
+      case chatdetail:
+        final meetingId = settings.arguments as int;
+
+        return MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => ChatDetailViewModel(
+              chatApi: ChatApi(
+                baseUrl: baseUrl,
+                authApi: AuthApi(baseUrl: baseUrl),
+                tokenStorage: TokenStorage(),
+              ),
+            ),
+            child: ChatDetailPage(meetingId: meetingId),
           ),
           settings: settings,
         );
