@@ -48,8 +48,12 @@ class _ChatListPageState extends State<ChatListPage> {
             scheduledAt: room.scheduledAt,
             lastMessageContent: room.lastMessageContent,
             lastMessageCreatedAt: room.lastMessageCreatedAt,
-            onTap: () {
-              // 채팅 상세 이동
+            onTap: () async {
+              await Navigator.pushNamed(
+                context,
+                '/chatdetail',
+                arguments: room.meetingId,
+              );
             },
           );
         },
