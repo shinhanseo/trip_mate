@@ -326,6 +326,15 @@ class _HomeMorePageState extends State<HomeMorePage> {
     return values.join(' · ');
   }
 
+  bool _hasActiveFilters(HomeMoreViewModel vm) {
+    return (vm.selectedCategory != null && vm.selectedCategory!.isNotEmpty) ||
+        (vm.selectedAgeGroup != null && vm.selectedAgeGroup!.isNotEmpty) ||
+        (vm.selectedGender != null && vm.selectedGender!.isNotEmpty) ||
+        (vm.selectedRegionPrimary != null &&
+            vm.selectedRegionPrimary!.isNotEmpty) ||
+        _searchController.text.trim().isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<HomeMoreViewModel>();
@@ -461,12 +470,14 @@ class _HomeMorePageState extends State<HomeMorePage> {
                         )
                       : items.isEmpty
                       ? ListView(
-                          children: const [
+                          children: [
                             SizedBox(
                               height: 300,
                               child: Center(
                                 child: Text(
-                                  '조건에 맞는 동행이 없습니다.',
+                                  _hasActiveFilters(vm)
+                                      ? '조건에 맞는 동행이 없습니다.'
+                                      : '아직 생성된 동행이 없습니다.',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
