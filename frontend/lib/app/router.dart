@@ -25,6 +25,7 @@ import '../features/splash/views/splash_page.dart';
 import '../features/chat/views/chat_list_page.dart';
 import '../features/chat/viewmodels/chat_list_viewmodel.dart';
 import '../features/chat/services/chat_api.dart';
+import '../features/chat/services/chat_socket_service.dart';
 import '../features/chat/views/chat_detail_page.dart';
 import '../features/chat/viewmodels/chat_detail_viewmodel.dart';
 
@@ -145,6 +146,9 @@ class AppRouter {
                 baseUrl: baseUrl,
                 authApi: AuthApi(baseUrl: baseUrl),
                 tokenStorage: TokenStorage(),
+              ),
+              chatSocketService: ChatSocketService(
+                socketBaseUrl: baseUrl,
               ),
             ),
             child: ChatDetailPage(meetingId: meetingId),
