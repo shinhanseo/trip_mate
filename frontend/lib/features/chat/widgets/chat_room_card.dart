@@ -115,7 +115,7 @@ class ChatRoomCard extends StatelessWidget {
                   color: AppColors.gray50,
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: Column(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -130,8 +130,8 @@ class ChatRoomCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+                    const SizedBox(width: 20),
                     if (hasLastMessage && lastMessageCreatedAt != null) ...[
-                      const SizedBox(height: 8),
                       Align(
                         alignment: Alignment.centerRight,
                         child: Text(
