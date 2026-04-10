@@ -201,7 +201,15 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                     width: 44,
                     height: 44,
                     child: FilledButton(
-                      onPressed: () {},
+                      onPressed: () {  
+                        final content = _messageController.text;
+                        context.read<ChatDetailViewModel>().sendMessage(
+                              meetingId: widget.meetingId,
+                              content: content,
+                            );
+
+                        _messageController.clear();
+                      },
                       style: FilledButton.styleFrom(
                         padding: EdgeInsets.zero,
                         backgroundColor: AppColors.brandMint,
