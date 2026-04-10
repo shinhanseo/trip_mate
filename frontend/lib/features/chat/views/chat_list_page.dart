@@ -66,6 +66,7 @@ class _ChatListPageState extends State<ChatListPage> {
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,
         title: const Text('채팅'),
+        automaticallyImplyLeading: false,
       ),
       body: body,
       bottomNavigationBar: const BottomNavBar(currentIndex: 0),
