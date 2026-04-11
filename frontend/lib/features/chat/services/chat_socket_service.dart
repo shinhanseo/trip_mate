@@ -1,4 +1,5 @@
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter/foundation.dart';
 
 import '../models/chat_detail_model.dart';
 
@@ -31,26 +32,40 @@ class ChatSocketService {
     });
 
     _socket!.on('new_message', (data) {
-      onNewMessage(_parseMessage(data));
+      try {
+        onNewMessage(_parseMessage(data));
+      } catch (e) {
+        onError('새 메시지 형식이 올바르지 않습니다.');
+      }
     });
 
     _socket!.on('socket_error', (data) {
       onError(_parseErrorMessage(data));
     });
 
+    _socket!.onConnectError((data) {
+      onError('채팅 서버 연결에 실패했습니다.');
+    });
+
+    _socket!.onError((data) {
+      onError('채팅 서버 오류가 발생했습니다.');
+    });
+
+    _socket!.onDisconnect((data) {});
+
     _socket!.connect();
   }
 
   void sendMessage({required int meetingId, required String content}) {
-    _socket?.emit('send_message', {
-      'meetingId': meetingId,
-      'content': content,
-    });
+    _socket?.emit('send_message', {'meetingId': meetingId, 'content': content});
   }
 
   void dispose() {
     _socket?.off('new_message');
     _socket?.off('socket_error');
+    _socket?.off('connect_error');
+    _socket?.off('error');
+    _socket?.off('disconnect');
     _socket?.disconnect();
     _socket?.dispose();
     _socket = null;
