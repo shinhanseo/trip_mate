@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/constants/app_colors.dart';
+import '../../auth/viewmodels/auth_state.dart';
 import 'package:provider/provider.dart';
 
 import '../viewmodels/chat_detail_viewmodel.dart';
+import '../widgets/chat_message_bubble.dart';
 
 class ChatDetailPage extends StatefulWidget {
   final int meetingId;
@@ -34,6 +36,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<ChatDetailViewModel>();
+    final currentUserId = context.watch<AuthState>().currentUser?.id;
 
     if (vm.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -139,27 +142,17 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       final message = messages[index];
-
-                      return Align(
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.gray100,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Text(
-                            message.content,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: AppColors.black,
-                            ),
-                          ),
-                        ),
+                      final isMine = message.senderId == currentUserId;
+                      final previousMessage = index > 0
+                          ? messages[index - 1]
+                          : null;
+                      final showProfileImage =
+                          !isMine &&
+                          previousMessage?.senderId != message.senderId;
+                      return ChatMessageBubble(
+                        message: message,
+                        isMine: isMine,
+                        showProfileImage: showProfileImage,
                       );
                     },
                   ),
@@ -201,12 +194,12 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                     width: 44,
                     height: 44,
                     child: FilledButton(
-                      onPressed: () {  
+                      onPressed: () {
                         final content = _messageController.text;
                         context.read<ChatDetailViewModel>().sendMessage(
-                              meetingId: widget.meetingId,
-                              content: content,
-                            );
+                          meetingId: widget.meetingId,
+                          content: content,
+                        );
 
                         _messageController.clear();
                       },
