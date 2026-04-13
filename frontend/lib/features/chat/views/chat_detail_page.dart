@@ -178,13 +178,14 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                       final previousMessage = index > 0
                           ? messages[index - 1]
                           : null;
-                      final showProfileImage =
+                      final showProfileImageAndNickname =
                           !isMine &&
                           previousMessage?.senderId != message.senderId;
                       return ChatMessageBubble(
                         message: message,
                         isMine: isMine,
-                        showProfileImage: showProfileImage,
+                        showProfileImageAndNickname:
+                            showProfileImageAndNickname,
                       );
                     },
                   ),
