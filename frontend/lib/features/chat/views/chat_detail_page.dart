@@ -90,7 +90,20 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
             color: AppColors.black,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline, color: AppColors.black),
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                '/meetingdetail',
+                arguments: widget.meetingId,
+              );
+            },
+          ),
+        ],
       ),
+
       body: Column(
         children: [
           Row(
