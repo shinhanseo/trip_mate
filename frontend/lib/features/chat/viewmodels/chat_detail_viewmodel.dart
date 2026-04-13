@@ -81,7 +81,9 @@ class ChatDetailViewModel extends ChangeNotifier {
       meeting: current.meeting,
       messages: [...current.messages, message],
     );
-
+    debugPrint(
+      'VM handleNewMessage id=${message.id} content=${message.content}',
+    );
     notifyListeners();
   }
 

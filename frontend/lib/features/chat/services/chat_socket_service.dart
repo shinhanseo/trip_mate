@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../models/chat_detail_model.dart';
 
@@ -36,6 +36,7 @@ class ChatSocketService {
 
     _socket!.onConnect((_) {
       _socket!.emit('join_room', {'meetingId': meetingId});
+      debugPrint('SOCKET onConnect meetingId=$meetingId');
     });
 
     _socket!.on('joined_room', (_) {
@@ -43,10 +44,12 @@ class ChatSocketService {
       if (!joinCompleter.isCompleted) {
         joinCompleter.complete();
       }
+      debugPrint('SOCKET joined_room meetingId=$meetingId');
     });
 
     _socket!.on('new_message', (data) {
       try {
+        debugPrint('SOCKET on new_message data=$data');
         onNewMessage(_parseMessage(data));
       } catch (e) {
         onError('새 메시지 형식이 올바르지 않습니다.');
@@ -58,6 +61,7 @@ class ChatSocketService {
       if (!_isJoined && !joinCompleter.isCompleted) {
         joinCompleter.completeError(Exception(message));
       }
+      debugPrint('SOCKET error message=$message');
       onError(message);
     });
 
@@ -83,6 +87,9 @@ class ChatSocketService {
     if (!isReady) {
       return false;
     }
+    debugPrint(
+      'SOCKET emit send_message meetingId=$meetingId content=$content isReady=$isReady',
+    );
 
     _socket?.emit('send_message', {'meetingId': meetingId, 'content': content});
     return true;
