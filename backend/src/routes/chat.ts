@@ -63,13 +63,14 @@ router.get(
           cm.id,
           cm.room_id,
           cm.sender_id,
+          coalesce(cm.message_type, 'text') as message_type,
           cm.content,
           cm.created_at,
           cm.updated_at,
           up.nickname as sender_nickname,
           up.profile_image_url as sender_profile_image_url
         from chat_messages cm
-        join users u
+        left join users u
           on u.id = cm.sender_id
         left join user_profiles up
           on up.user_id = u.id
@@ -96,7 +97,8 @@ router.get(
           messages: messageRes.rows.map((row) => ({
             id: Number(row.id),
             roomId: Number(row.room_id),
-            senderId: Number(row.sender_id),
+            type: row.message_type ?? "text",
+            senderId: row.sender_id === null ? null : Number(row.sender_id),
             senderNickname: row.sender_nickname,
             senderProfileImageUrl: row.sender_profile_image_url,
             content: row.content,
@@ -193,13 +195,15 @@ router.post(
         insert into chat_messages (
           room_id,
           sender_id,
-          content
+          content,
+          message_type
         )
-        values ($1, $2, $3)
+        values ($1, $2, $3, 'text')
         returning
           id,
           room_id,
           sender_id,
+          message_type,
           content,
           created_at,
           updated_at
@@ -230,6 +234,7 @@ router.post(
           item: {
             id: Number(message.id),
             roomId: Number(message.room_id),
+            type: message.message_type ?? "text",
             senderId: Number(message.sender_id),
             senderNickname: senderRes.rows[0]?.nickname ?? null,
             senderProfileImageUrl:
@@ -271,6 +276,7 @@ router.get("/rooms", authRequired, async (req: AuthRequest, res: Response) => {
         m.status as meeting_status,
         lm.id as last_message_id,
         lm.sender_id as last_message_sender_id,
+        lm.message_type as last_message_type,
         lm.content as last_message_content,
         lm.created_at as last_message_created_at,
         up.nickname as last_message_sender_nickname
@@ -283,6 +289,7 @@ router.get("/rooms", authRequired, async (req: AuthRequest, res: Response) => {
         select
           cm.id,
           cm.sender_id,
+          coalesce(cm.message_type, 'text') as message_type,
           cm.content,
           cm.created_at
         from chat_messages cm
@@ -318,6 +325,7 @@ router.get("/rooms", authRequired, async (req: AuthRequest, res: Response) => {
           row.last_message_sender_id === null
             ? null
             : Number(row.last_message_sender_id),
+        lastMessageType: row.last_message_type ?? null,
         lastMessageSenderNickname: row.last_message_sender_nickname,
         lastMessageContent: row.last_message_content,
         lastMessageCreatedAt: row.last_message_created_at,
@@ -330,6 +338,5 @@ router.get("/rooms", authRequired, async (req: AuthRequest, res: Response) => {
     client.release();
   }
 });
-
 
 export default router;
