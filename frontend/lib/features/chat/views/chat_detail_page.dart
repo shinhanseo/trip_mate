@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../viewmodels/chat_detail_viewmodel.dart';
 import '../widgets/chat_message_bubble.dart';
+import '../widgets/chat_system_message.dart';
 
 class ChatDetailPage extends StatefulWidget {
   final int meetingId;
@@ -174,6 +175,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       final message = messages[index];
+                      if (message.type == 'system') {
+                        return ChatSystemMessage(content: message.content);
+                      }
                       final isMine = message.senderId == currentUserId;
                       final previousMessage = index > 0
                           ? messages[index - 1]
