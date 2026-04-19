@@ -48,6 +48,7 @@ class _ChatListPageState extends State<ChatListPage> {
             scheduledAt: room.scheduledAt,
             lastMessageContent: room.lastMessageContent,
             lastMessageCreatedAt: room.lastMessageCreatedAt,
+            unreadCount: room.unreadCount,
             onTap: () async {
               final shouldRefresh = await Navigator.pushNamed(
                 context,

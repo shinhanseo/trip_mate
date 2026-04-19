@@ -9,6 +9,7 @@ class ChatRoomCard extends StatelessWidget {
     required this.scheduledAt,
     required this.lastMessageContent,
     required this.lastMessageCreatedAt,
+    required this.unreadCount,
     required this.onTap,
   });
 
@@ -17,6 +18,7 @@ class ChatRoomCard extends StatelessWidget {
   final DateTime scheduledAt;
   final String? lastMessageContent;
   final DateTime? lastMessageCreatedAt;
+  final int unreadCount;
   final VoidCallback onTap;
 
   @override
@@ -146,34 +148,61 @@ class ChatRoomCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      hasLastMessage ? lastMessageContent! : '아직 메시지가 없습니다.',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: hasLastMessage
-                            ? AppColors.gray500
-                            : AppColors.gray400,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    if (hasLastMessage && lastMessageCreatedAt != null) ...[
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          _formatMessageTime(lastMessageCreatedAt!),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.gray400,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    Expanded(
+                      child: Text(
+                        hasLastMessage ? lastMessageContent! : '아직 메시지가 없습니다.',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: hasLastMessage
+                              ? AppColors.gray500
+                              : AppColors.gray400,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ],
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (hasLastMessage && lastMessageCreatedAt != null)
+                          Text(
+                            _formatMessageTime(lastMessageCreatedAt!),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.gray400,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        if (unreadCount > 0) ...[
+                          const SizedBox(height: 6),
+                          Container(
+                            constraints: const BoxConstraints(
+                              minWidth: 22,
+                              minHeight: 22,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 7),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AppColors.red700,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              unreadCount > 99 ? '99+' : unreadCount.toString(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ),
