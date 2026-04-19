@@ -57,6 +57,37 @@ router.get(
       const roomId = room.room_id;
       const joinedAt = room.joined_at;
 
+      const latestMessageRes = await client.query(
+        `
+        select cm.id
+        from chat_messages cm
+        where cm.room_id = $1
+          and cm.created_at >= $2
+        order by cm.created_at desc, cm.id desc
+        limit 1
+        `,
+        [roomId, joinedAt]
+      );
+
+      const latestMessageId = latestMessageRes.rows[0]?.id;
+
+      if (latestMessageId !== undefined) {
+        await client.query(
+          `
+          update chat_room_members
+          set
+            last_read_message_id = greatest(
+              coalesce(last_read_message_id, 0),
+              $3
+            ),
+            last_read_at = now()
+          where room_id = $1
+            and user_id = $2
+          `,
+          [roomId, userId, latestMessageId]
+        );
+      }
+
       const messageRes = await client.query(
         `
         select
@@ -68,7 +99,20 @@ router.get(
           cm.created_at,
           cm.updated_at,
           up.nickname as sender_nickname,
-          up.profile_image_url as sender_profile_image_url
+          up.profile_image_url as sender_profile_image_url,
+          case
+            when cm.sender_id is null then 0
+            else (
+              select count(*)
+              from chat_room_members readers
+              where readers.room_id = cm.room_id
+                and readers.user_id <> cm.sender_id
+                and (
+                  readers.last_read_message_id is null
+                  or readers.last_read_message_id < cm.id
+                )
+            )
+          end as unread_count
         from chat_messages cm
         left join users u
           on u.id = cm.sender_id
@@ -104,6 +148,7 @@ router.get(
             content: row.content,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
+            unreadCount: Number(row.unread_count),
           })),
         },
       });
