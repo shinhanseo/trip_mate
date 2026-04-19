@@ -324,7 +324,7 @@ router.get("/rooms", authRequired, async (req: AuthRequest, res: Response) => {
         lm.message_type as last_message_type,
         lm.content as last_message_content,
         lm.created_at as last_message_created_at,
-        up.nickname as last_message_sender_nickname
+        up.nickname as last_message_sender_nickname,
         (
           select count(*)
           from chat_messages unread_cm
