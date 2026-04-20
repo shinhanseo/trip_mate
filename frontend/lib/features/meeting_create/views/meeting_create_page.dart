@@ -43,6 +43,13 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
     });
   }
 
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
   Future<void> _openPlaceSearchPage() async {
     final selected = await Navigator.pushNamed(context, '/meetingplacesearch');
 
