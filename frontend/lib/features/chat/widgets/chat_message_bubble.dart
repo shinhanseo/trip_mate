@@ -22,6 +22,17 @@ class ChatMessageBubble extends StatelessWidget {
       style: const TextStyle(fontSize: 14, color: AppColors.black),
     );
 
+    final unreadText = isMine && message.unreadCount > 0
+        ? Text(
+            message.unreadCount.toString(),
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.brandMint,
+              fontWeight: FontWeight.w700,
+            ),
+          )
+        : const SizedBox.shrink();
+
     final bubble = Flexible(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -52,7 +63,19 @@ class ChatMessageBubble extends StatelessWidget {
     final myChat = Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
-      children: [timeText, const SizedBox(width: 8), bubble],
+      children: [
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            unreadText,
+            if (message.unreadCount > 0) const SizedBox(height: 2),
+            timeText,
+          ],
+        ),
+        const SizedBox(width: 8),
+        bubble,
+      ],
     );
 
     final otherChatProfile = Column(
@@ -82,6 +105,7 @@ class ChatMessageBubble extends StatelessWidget {
         ),
       ],
     );
+
     final otherChatDefault = Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
