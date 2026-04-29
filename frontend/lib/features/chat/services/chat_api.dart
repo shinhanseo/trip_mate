@@ -48,23 +48,21 @@ class ChatApi {
     throw Exception(json['message'] ?? '채팅방 조회에 실패했습니다.');
   }
 
-  Future<String> getValidAccessToken() async {
+  Future<String> getValidAccessToken({bool forceRefresh = false}) async {
     final accessToken = await tokenStorage.getAccessToken();
 
-    if (accessToken == null || accessToken.isEmpty) {
-      throw Exception('로그인이 만료되었습니다.');
-    }
+    if (!forceRefresh && accessToken != null && accessToken.isNotEmpty) {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/chat/rooms'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/chat/rooms'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
-
-    if (response.statusCode != 401) {
-      return accessToken;
+      if (response.statusCode != 401) {
+        return accessToken;
+      }
     }
 
     final refreshToken = await tokenStorage.getRefreshToken();

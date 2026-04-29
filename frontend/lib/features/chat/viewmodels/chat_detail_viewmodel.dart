@@ -57,8 +57,23 @@ class ChatDetailViewModel extends ChangeNotifier {
   }
 
   Future<void> connectSocket(int meetingId) async {
-    final accessToken = await chatApi.getValidAccessToken();
+    try {
+      final accessToken = await chatApi.getValidAccessToken();
+      await _connectSocketWithToken(meetingId, accessToken);
+    } catch (error) {
+      debugPrint('VM socket connect retry after token refresh error=$error');
 
+      final refreshedAccessToken = await chatApi.getValidAccessToken(
+        forceRefresh: true,
+      );
+      await _connectSocketWithToken(meetingId, refreshedAccessToken);
+    }
+  }
+
+  Future<void> _connectSocketWithToken(
+    int meetingId,
+    String accessToken,
+  ) async {
     if (accessToken.isEmpty) {
       throw Exception('로그인이 만료되었습니다.');
     }

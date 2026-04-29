@@ -96,6 +96,7 @@ class ChatSocketService {
     });
 
     _socket!.onConnectError((data) {
+      debugPrint('SOCKET connect_error data=$data');
       const message = '채팅 서버 연결에 실패했습니다.';
       if (!joinCompleter.isCompleted) {
         joinCompleter.completeError(Exception(message));
