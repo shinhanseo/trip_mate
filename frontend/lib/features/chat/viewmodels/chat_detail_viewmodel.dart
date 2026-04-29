@@ -7,8 +7,13 @@ import '../services/chat_socket_service.dart';
 class ChatDetailViewModel extends ChangeNotifier {
   final ChatApi chatApi;
   final ChatSocketService chatSocketService;
+  final int currentUserId;
 
-  ChatDetailViewModel({required this.chatApi, required this.chatSocketService});
+  ChatDetailViewModel({
+    required this.chatApi,
+    required this.chatSocketService,
+    required this.currentUserId,
+  });
 
   ChatDetailModel? chatDetail;
   bool isLoading = false;
@@ -50,6 +55,7 @@ class ChatDetailViewModel extends ChangeNotifier {
     await chatSocketService.connect(
       accessToken: accessToken,
       meetingId: meetingId,
+      currentUserId: currentUserId,
       onNewMessage: _handleNewMessage,
       onError: _handleSocketError,
     );

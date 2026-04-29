@@ -50,7 +50,13 @@ class ChatSocketService {
     _socket!.on('new_message', (data) {
       try {
         debugPrint('SOCKET on new_message data=$data');
-        onNewMessage(_parseMessage(data));
+
+        final message = _parseMessage(data);
+        onNewMessage(message);
+
+        if (message.senderId != null) {
+          markAsRead(meetingId: meetingId, lastReadMessageId: message.id);
+        }
       } catch (e) {
         onError('새 메시지 형식이 올바르지 않습니다.');
       }
@@ -92,6 +98,23 @@ class ChatSocketService {
     );
 
     _socket?.emit('send_message', {'meetingId': meetingId, 'content': content});
+    return true;
+  }
+
+  bool markAsRead({required int meetingId, required int lastReadMessageId}) {
+    if (!isReady) {
+      return false;
+    }
+
+    debugPrint(
+      'SOCKET emit read_messages meetingId=$meetingId lastReadMessageId=$lastReadMessageId',
+    );
+
+    _socket?.emit('read_messages', {
+      'meetingId': meetingId,
+      'lastReadMessageId': lastReadMessageId,
+    });
+
     return true;
   }
 

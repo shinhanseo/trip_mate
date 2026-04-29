@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import '../features/auth/viewmodels/auth_state.dart';
+
 import '../features/home/views/home_page.dart';
 import '../features/home/viewmodels/weather_viewmodel.dart';
 import '../features/home/viewmodels/region_summary_viewmodel.dart';
@@ -140,19 +142,26 @@ class AppRouter {
         final meetingId = settings.arguments as int;
 
         return MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider(
-            create: (_) => ChatDetailViewModel(
-              chatApi: ChatApi(
-                baseUrl: baseUrl,
-                authApi: AuthApi(baseUrl: baseUrl),
-                tokenStorage: TokenStorage(),
+          builder: (context) {
+            final currentUserId = context.read<AuthState>().currentUser?.id;
+
+            if (currentUserId == null) {
+              return const LoginPage();
+            }
+
+            return ChangeNotifierProvider(
+              create: (_) => ChatDetailViewModel(
+                chatApi: ChatApi(
+                  baseUrl: baseUrl,
+                  authApi: AuthApi(baseUrl: baseUrl),
+                  tokenStorage: TokenStorage(),
+                ),
+                chatSocketService: ChatSocketService(socketBaseUrl: baseUrl),
+                currentUserId: currentUserId,
               ),
-              chatSocketService: ChatSocketService(
-                socketBaseUrl: baseUrl,
-              ),
-            ),
-            child: ChatDetailPage(meetingId: meetingId),
-          ),
+              child: ChatDetailPage(meetingId: meetingId),
+            );
+          },
           settings: settings,
         );
 
