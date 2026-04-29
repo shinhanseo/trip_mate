@@ -27,6 +27,7 @@ type NewMessagePayload = {
   content: string;
   createdAt: string;
   updatedAt: string;
+  unreadCount: number;
 };
 
 type AuthedSocket = Socket & {
@@ -165,6 +166,7 @@ export function setupChatSocket(server: http.Server) {
             content: message.content,
             createdAt: new Date(message.created_at).toISOString(),
             updatedAt: new Date(message.updated_at).toISOString(),
+            unreadCount: 0,
           };
         }
 
@@ -273,6 +275,17 @@ export function setupChatSocket(server: http.Server) {
           [roomId, userId, content]
         );
 
+        const unreadCountRes = await client.query(
+          `
+          select count(*) as unread_count
+          from chat_room_members
+          where room_id = $1
+            and user_id <> $2
+            and joined_at <= $3
+          `,
+          [roomId, userId, insertRes.rows[0].created_at]
+        );
+
         const senderRes = await client.query(
           `
           select
@@ -305,6 +318,7 @@ export function setupChatSocket(server: http.Server) {
           content: message.content,
           createdAt: new Date(message.created_at).toISOString(),
           updatedAt: new Date(message.updated_at).toISOString(),
+          unreadCount: Number(unreadCountRes.rows[0]?.unread_count ?? 0),
         };
 
         console.log("emit_new_message", { roomName, messageId: message.id });
