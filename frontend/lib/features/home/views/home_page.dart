@@ -41,6 +41,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,
+        centerTitle: false,
         scrolledUnderElevation: 0,
         title: const Text(
           '모행',
