@@ -72,6 +72,7 @@ class _ChatListPageState extends State<ChatListPage> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,
+        centerTitle: false,
         title: const Text(
           '채팅',
           style: TextStyle(

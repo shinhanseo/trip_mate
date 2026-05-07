@@ -51,6 +51,7 @@ class _MyPageState extends State<MyPage> {
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,
         scrolledUnderElevation: 0,
+        centerTitle: false,
         title: const Text('마이페이지'),
         automaticallyImplyLeading: false,
       ),
