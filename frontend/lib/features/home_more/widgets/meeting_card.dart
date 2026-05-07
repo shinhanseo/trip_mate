@@ -10,127 +10,184 @@ class MeetingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final categoryColor = _categoryColor(meeting.category);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(26),
         onTap: onTap,
         child: Container(
           width: double.infinity,
-          margin: const EdgeInsets.symmetric(vertical: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.gray200, width: 1.2),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: AppColors.gray200, width: 1.1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.10),
-                blurRadius: 16,
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 18,
                 offset: const Offset(0, 6),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                meeting.title,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                meeting.regionPrimary,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.gray400,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 14,
-                runSpacing: 6,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 22,
-                        color: AppColors.gray500,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        meeting.placeText,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: AppColors.neutralGray,
-                          fontWeight: FontWeight.w600,
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                Container(width: 7, color: categoryColor),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                meeting.title,
+                                style: const TextStyle(
+                                  fontSize: 21,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.black,
+                                  height: 1.25,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 9,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: categoryColor.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                _categoryLabel(meeting.category),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: categoryColor,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.access_time,
-                        size: 22,
-                        color: AppColors.gray500,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _formatDateTime(meeting.scheduledAt),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: AppColors.neutralGray,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: 6),
+                        Text(
+                          meeting.regionPrimary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.gray400,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 14,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.location_on_outlined,
+                                  size: 20,
+                                  color: AppColors.gray500,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  meeting.placeText,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: AppColors.neutralGray,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.access_time,
+                                  size: 20,
+                                  color: AppColors.gray500,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _formatDateTime(meeting.scheduledAt),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: AppColors.neutralGray,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _MeetingTag(
+                              text:
+                                  '${meeting.currentMembers}/${meeting.maxMembers}명',
+                              backgroundColor: AppColors.slate100,
+                              textColor: AppColors.slate500,
+                            ),
+                            _MeetingTag(
+                              text: _genderLabel(meeting.gender),
+                              backgroundColor: AppColors.success50,
+                              textColor: AppColors.success700,
+                            ),
+                            _MeetingTag(
+                              text: _ageGroupLabel(meeting.ageGroups),
+                              backgroundColor: AppColors.indigo50,
+                              textColor: AppColors.indigo700,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _MeetingTag(
-                    text: '${meeting.currentMembers}/${meeting.maxMembers}명',
-                    backgroundColor: AppColors.slate100,
-                    textColor: AppColors.slate500,
-                  ),
-                  _MeetingTag(
-                    text: _genderLabel(meeting.gender),
-                    backgroundColor: AppColors.success50,
-                    textColor: AppColors.success700,
-                  ),
-                  _MeetingTag(
-                    text: _ageGroupLabel(meeting.ageGroups),
-                    backgroundColor: AppColors.indigo50,
-                    textColor: AppColors.indigo700,
-                  ),
-                  _MeetingTag(
-                    text: _categoryLabel(meeting.category),
-                    backgroundColor: AppColors.orange50,
-                    textColor: AppColors.orange700,
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  static Color _categoryColor(String category) {
+    switch (category) {
+      case 'food':
+        return Colors.deepOrange;
+      case 'cafe':
+        return Colors.brown;
+      case 'drink':
+        return Colors.amber;
+      case 'activity':
+        return AppColors.brandTeal;
+      case 'tour':
+        return Colors.blueAccent;
+      default:
+        return AppColors.brandMint;
+    }
   }
 
   static String _formatDateTime(DateTime dateTime) {
@@ -151,13 +208,8 @@ class MeetingCard extends StatelessWidget {
     final time =
         '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
 
-    if (isToday) {
-      return '당일 $time';
-    }
-
-    if (isTomorrow) {
-      return '내일 $time';
-    }
+    if (isToday) return '당일 $time';
+    if (isTomorrow) return '내일 $time';
 
     return '${local.month}/${local.day} $time';
   }
@@ -225,13 +277,6 @@ class _MeetingTag extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: textColor.withValues(alpha: 0.18)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
       child: Text(
         text,
