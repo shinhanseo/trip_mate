@@ -9,8 +9,8 @@ class GradientButton extends StatelessWidget {
   final double height;
   final double borderRadius;
   final TextStyle? textStyle;
+  final Widget? icon;
 
-  // PhysicalModel용 그림자 설정
   final double elevation;
   final Color shadowColor;
 
@@ -23,6 +23,7 @@ class GradientButton extends StatelessWidget {
     this.height = 56,
     this.borderRadius = 30,
     this.textStyle,
+    this.icon,
     this.elevation = 6,
     this.shadowColor = AppColors.shadowBlack,
   });
@@ -52,15 +53,22 @@ class GradientButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(borderRadius),
               ),
               child: Center(
-                child: Text(
-                  text,
-                  style:
-                      textStyle ??
-                      const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null) ...[icon!, const SizedBox(width: 8)],
+                    Text(
+                      text,
+                      style:
+                          textStyle ??
+                          const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                    ),
+                  ],
                 ),
               ),
             ),
