@@ -182,7 +182,11 @@ class _MeetingCreatePageState extends State<MeetingCreatePage> {
 
       if (!mounted) return;
 
-      Navigator.pop(context, true);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/homemore',
+        (route) => route.isFirst,
+      );
     } catch (e) {
       if (!mounted) return;
 

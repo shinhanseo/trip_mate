@@ -287,8 +287,17 @@ class _HomeMorePageState extends State<HomeMorePage> {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(30),
-            onTap: () {
-              Navigator.pushNamed(context, '/meetingcreate');
+            onTap: () async {
+              final result = await Navigator.pushNamed(
+                context,
+                '/meetingcreate',
+              );
+
+              if (!context.mounted) return;
+
+              if (result == true) {
+                await context.read<HomeMoreViewModel>().refresh();
+              }
             },
             child: const Center(
               child: Icon(Icons.add, color: Colors.white, size: 28),
