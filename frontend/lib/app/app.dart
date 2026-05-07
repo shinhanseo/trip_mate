@@ -10,6 +10,16 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'TripMate',
       theme: ThemeData(fontFamily: 'Pretendard'),
+
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+
+        return MediaQuery(
+          data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)),
+          child: child!,
+        );
+      },
+
       initialRoute: AppRouter.splash,
       onGenerateRoute: AppRouter.onGenerateRoute,
     );
