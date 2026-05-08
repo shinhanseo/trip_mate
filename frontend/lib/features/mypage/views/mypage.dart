@@ -8,6 +8,7 @@ import '../viewmodels/my_meeting_viewmodel.dart';
 import '../widgets/profile_summary.dart';
 import '../../auth/viewmodels/auth_state.dart';
 import '../../../core/widgets/confirm_dialog.dart';
+import '../../../core/widgets/custom_message_dialog.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
@@ -24,6 +25,113 @@ class _MyPageState extends State<MyPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MyPageViewModel>().getMe();
     });
+  }
+
+  void _openAccountSettings() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.gray300,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _AccountActionItem(
+                icon: Icons.logout,
+                label: '로그아웃',
+                color: AppColors.dark,
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmLogout();
+                },
+              ),
+              const Divider(color: AppColors.gray200, height: 1),
+              _AccountActionItem(
+                icon: Icons.person_remove_outlined,
+                label: '회원탈퇴',
+                color: Colors.red,
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDeleteAccount();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (_) => ConfirmDialog(
+        title: '로그아웃',
+        message: '로그아웃하시겠습니까?',
+        onConfirm: () async {
+          await context.read<AuthState>().logout();
+
+          if (!mounted) return;
+
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/login',
+            (route) => false,
+          );
+        },
+      ),
+    );
+  }
+
+  void _confirmDeleteAccount() {
+    showDialog(
+      context: context,
+      builder: (_) => ConfirmDialog(
+        title: '회원탈퇴',
+        message: '탈퇴하면 프로필 정보가 삭제되고 계정을 복구할 수 없습니다. 정말 탈퇴하시겠습니까?',
+        confirmText: '탈퇴하기',
+        onConfirm: () async {
+          final myPageViewModel = context.read<MyPageViewModel>();
+          final authState = context.read<AuthState>();
+
+          try {
+            await myPageViewModel.deleteUser();
+            await authState.clearLocalSession();
+
+            if (!mounted) return;
+
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/login',
+              (route) => false,
+            );
+          } catch (e) {
+            if (!mounted) return;
+
+            showDialog(
+              context: context,
+              builder: (_) => CustomMessageDialog(
+                title: '탈퇴할 수 없어요.',
+                message: e.toString().replaceFirst('Exception: ', ''),
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 
   @override
@@ -205,66 +313,54 @@ class _MyPageState extends State<MyPage> {
 
               const SizedBox(height: 8),
               const Divider(color: AppColors.gray200, thickness: 1, height: 1),
+              const SizedBox(height: 8),
+
+              _MyMeetingItem(
+                label: '계정 설정',
+                onTap: _openAccountSettings,
+              ),
+
+              const SizedBox(height: 8),
+              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
 
               const SizedBox(height: 42),
 
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () async {
-                    showDialog(
-                      context: context,
-                      builder: (_) => ConfirmDialog(
-                        title: '로그아웃',
-                        message: '로그아웃하시겠습니까?',
-                        onConfirm: () async {
-                          await context.read<AuthState>().logout();
-
-                          if (!context.mounted) return;
-
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            '/login',
-                            (route) => false,
-                          );
-                        },
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 42,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: AppColors.gray200),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 8,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const Text(
-                      '로그아웃',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+    );
+  }
+}
+
+class _AccountActionItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _AccountActionItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, color: color),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+      onTap: onTap,
     );
   }
 }
