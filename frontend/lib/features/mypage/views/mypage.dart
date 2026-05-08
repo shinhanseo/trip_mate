@@ -75,6 +75,94 @@ class _MyPageState extends State<MyPage> {
     );
   }
 
+  void _openPrivacyPolicy() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.72,
+        minChildSize: 0.42,
+        maxChildSize: 0.88,
+        builder: (context, scrollController) {
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.gray300,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.privacy_tip_outlined,
+                        color: AppColors.dark,
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          '개인정보처리방침',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.black,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      children: const [
+                        _PolicySection(
+                          title: '수집하는 정보',
+                          body:
+                              'TripMate는 소셜 로그인 식별자, 닉네임, 성별, 연령대, 프로필 이미지, 관심 태그, 동행 생성 및 참여 정보, 채팅 이용 정보를 서비스 제공에 필요한 범위에서 처리합니다.',
+                        ),
+                        _PolicySection(
+                          title: '이용 목적',
+                          body:
+                              '계정 식별, 동행 모집 및 참여 조건 확인, 채팅방 제공, 프로필 표시, 서비스 안정성 개선을 위해 개인정보를 이용합니다.',
+                        ),
+                        _PolicySection(
+                          title: '보관 및 삭제',
+                          body:
+                              '회원 탈퇴 시 프로필 정보와 인증 정보는 삭제 또는 비식별 처리되며, 참여 중인 동행과 채팅방 멤버십도 정리됩니다. 법령상 보관이 필요한 정보는 정해진 기간 동안 분리 보관될 수 있습니다.',
+                        ),
+                        _PolicySection(
+                          title: '문의',
+                          body:
+                              '개인정보 관련 문의나 정정, 삭제 요청은 서비스 운영자에게 요청할 수 있습니다. 정식 배포 시 최신 개인정보처리방침 문서로 연결될 예정입니다.',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   void _confirmLogout() {
     showDialog(
       context: context,
@@ -169,164 +257,175 @@ class _MyPageState extends State<MyPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              UserProfileSummary(
-                nickname: me.nickname,
-                gender: me.gender,
-                ageRange: me.ageRange,
-                bio: me.bio,
-                favoriteTags: categories,
-                profileImage: me.profileImage,
-              ),
-
-              const SizedBox(height: 18),
-
-              Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                  height: 24,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      gradient: const LinearGradient(
-                        colors: [AppColors.brandTeal, AppColors.brandLime],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.14),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: AppColors.gray50,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.gray200),
+                ),
+                child: Column(
+                  children: [
+                    UserProfileSummary(
+                      nickname: me.nickname,
+                      gender: me.gender,
+                      ageRange: me.ageRange,
+                      bio: me.bio,
+                      favoriteTags: categories,
+                      profileImage: me.profileImage,
                     ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(
-                          context,
-                          '/myprofileedit',
-                          arguments: me,
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        surfaceTintColor: Colors.transparent,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: const LinearGradient(
+                            colors: [AppColors.brandTeal, AppColors.brandLime],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        '프로필 편집하기',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              '/myprofileedit',
+                              arguments: me,
+                            );
+                          },
+                          icon: const Icon(
+                            Icons.edit_outlined,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            '프로필 편집하기',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            surfaceTintColor: Colors.transparent,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 42),
+              const SizedBox(height: 20),
 
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.gray200),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: ProfileCountItem(
+                        count: me.totalCount,
+                        label: '전체 참여한 동행',
+                      ),
+                    ),
+                    Expanded(
+                      child: ProfileCountItem(
+                        count: me.hostCount,
+                        label: '내가 만든 동행',
+                      ),
+                    ),
+                    Expanded(
+                      child: ProfileCountItem(
+                        count: me.ingCount,
+                        label: '현재 참가한 동행',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              _MyPageSection(
                 children: [
-                  Expanded(
-                    child: ProfileCountItem(
-                      count: me.totalCount,
-                      label: '전체 참여한 동행',
-                    ),
+                  _MyMeetingItem(
+                    icon: Icons.group_outlined,
+                    label: '전체 참여한 동행',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/mymeetinglist',
+                        arguments: MyMeetingType.total,
+                      );
+                    },
                   ),
-                  Expanded(
-                    child: ProfileCountItem(
-                      count: me.hostCount,
-                      label: '내가 만든 동행',
-                    ),
+                  _MyMeetingItem(
+                    icon: Icons.group_add_outlined,
+                    label: '내가 만든 동행',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/mymeetinglist',
+                        arguments: MyMeetingType.host,
+                      );
+                    },
                   ),
-                  Expanded(
-                    child: ProfileCountItem(
-                      count: me.ingCount,
-                      label: '현재 참가한 동행',
-                    ),
+                  _MyMeetingItem(
+                    icon: Icons.groups_outlined,
+                    label: '현재 참가한 동행',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/mymeetinglist',
+                        arguments: MyMeetingType.ing,
+                      );
+                    },
+                  ),
+                  _MyMeetingItem(
+                    icon: Icons.map_outlined,
+                    label: '동행 지도 확인하기',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/totalmeetingmap');
+                    },
                   ),
                 ],
               ),
 
-              const SizedBox(height: 42),
+              const SizedBox(height: 14),
 
-              _MyMeetingItem(
-                icon: const Icon(Icons.group_outlined),
-                label: '전체 참여한 동행',
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/mymeetinglist',
-                    arguments: MyMeetingType.total,
-                  );
-                },
+              _MyPageSection(
+                children: [
+                  _MyMeetingItem(
+                    icon: Icons.privacy_tip_outlined,
+                    label: '개인정보처리방침',
+                    onTap: _openPrivacyPolicy,
+                  ),
+                  _MyMeetingItem(
+                    icon: Icons.settings_outlined,
+                    label: '계정 설정',
+                    onTap: _openAccountSettings,
+                  ),
+                ],
               ),
-
-              const SizedBox(height: 8),
-              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
-              const SizedBox(height: 8),
-
-              _MyMeetingItem(
-                icon: const Icon(Icons.group_add_outlined),
-                label: '내가 만든 동행',
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/mymeetinglist',
-                    arguments: MyMeetingType.host,
-                  );
-                },
-              ),
-
-              const SizedBox(height: 8),
-              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
-              const SizedBox(height: 8),
-
-              _MyMeetingItem(
-                icon: const Icon(Icons.groups_outlined),
-                label: '현재 참가한 동행',
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/mymeetinglist',
-                    arguments: MyMeetingType.ing,
-                  );
-                },
-              ),
-
-              const SizedBox(height: 8),
-              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
-              const SizedBox(height: 8),
-
-              _MyMeetingItem(
-                icon: const Icon(Icons.map_outlined),
-                label: '동행 지도 확인하기',
-                onTap: () {
-                  Navigator.pushNamed(context, '/totalmeetingmap');
-                },
-              ),
-
-              const SizedBox(height: 8),
-              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
-              const SizedBox(height: 8),
-
-              _MyMeetingItem(
-                icon: const Icon(Icons.settings_outlined),
-                label: '계정 설정',
-                onTap: _openAccountSettings,
-              ),
-
-              const SizedBox(height: 8),
-              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
 
               const SizedBox(height: 42),
             ],
@@ -334,6 +433,43 @@ class _MyPageState extends State<MyPage> {
         ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+    );
+  }
+}
+
+class _PolicySection extends StatelessWidget {
+  final String title;
+  final String body;
+
+  const _PolicySection({required this.title, required this.body});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppColors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            body,
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.55,
+              fontWeight: FontWeight.w500,
+              color: AppColors.gray600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -369,8 +505,39 @@ class _AccountActionItem extends StatelessWidget {
   }
 }
 
+class _MyPageSection extends StatelessWidget {
+  final List<Widget> children;
+
+  const _MyPageSection({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.gray200),
+      ),
+      child: Column(
+        children: [
+          for (int i = 0; i < children.length; i++) ...[
+            children[i],
+            if (i != children.length - 1)
+              const Divider(
+                color: AppColors.gray200,
+                thickness: 1,
+                height: 1,
+                indent: 58,
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _MyMeetingItem extends StatelessWidget {
-  final Widget icon;
+  final IconData icon;
   final String label;
   final VoidCallback onTap;
 
@@ -382,23 +549,29 @@ class _MyMeetingItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        icon,
-        const SizedBox(width: 18),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: AppColors.gray600),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.black,
+                ),
+              ),
             ),
-          ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.gray400),
+          ],
         ),
-        IconButton(onPressed: onTap, icon: const Icon(Icons.chevron_right)),
-      ],
+      ),
     );
   }
 }
