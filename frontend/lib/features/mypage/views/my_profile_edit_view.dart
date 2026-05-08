@@ -209,8 +209,8 @@ class _MyProfileEditPageState extends State<MyProfileEditPage> {
                     child: Text(
                       '닉네임',
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
@@ -259,8 +259,8 @@ class _MyProfileEditPageState extends State<MyProfileEditPage> {
                     child: Text(
                       '성별',
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
@@ -287,8 +287,8 @@ class _MyProfileEditPageState extends State<MyProfileEditPage> {
                     child: Text(
                       '연령',
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
@@ -315,8 +315,8 @@ class _MyProfileEditPageState extends State<MyProfileEditPage> {
                     child: Text(
                       '한줄 소개',
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
@@ -364,8 +364,8 @@ class _MyProfileEditPageState extends State<MyProfileEditPage> {
                     child: Text(
                       '태그',
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
