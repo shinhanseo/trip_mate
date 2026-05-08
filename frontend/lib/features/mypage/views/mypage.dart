@@ -260,6 +260,7 @@ class _MyPageState extends State<MyPage> {
               const SizedBox(height: 42),
 
               _MyMeetingItem(
+                icon: const Icon(Icons.group_outlined),
                 label: '전체 참여한 동행',
                 onTap: () {
                   Navigator.pushNamed(
@@ -275,6 +276,7 @@ class _MyPageState extends State<MyPage> {
               const SizedBox(height: 8),
 
               _MyMeetingItem(
+                icon: const Icon(Icons.group_add_outlined),
                 label: '내가 만든 동행',
                 onTap: () {
                   Navigator.pushNamed(
@@ -290,6 +292,7 @@ class _MyPageState extends State<MyPage> {
               const SizedBox(height: 8),
 
               _MyMeetingItem(
+                icon: const Icon(Icons.groups_outlined),
                 label: '현재 참가한 동행',
                 onTap: () {
                   Navigator.pushNamed(
@@ -305,6 +308,7 @@ class _MyPageState extends State<MyPage> {
               const SizedBox(height: 8),
 
               _MyMeetingItem(
+                icon: const Icon(Icons.map_outlined),
                 label: '동행 지도 확인하기',
                 onTap: () {
                   Navigator.pushNamed(context, '/totalmeetingmap');
@@ -316,6 +320,7 @@ class _MyPageState extends State<MyPage> {
               const SizedBox(height: 8),
 
               _MyMeetingItem(
+                icon: const Icon(Icons.settings_outlined),
                 label: '계정 설정',
                 onTap: _openAccountSettings,
               ),
@@ -324,7 +329,6 @@ class _MyPageState extends State<MyPage> {
               const Divider(color: AppColors.gray200, thickness: 1, height: 1),
 
               const SizedBox(height: 42),
-
             ],
           ),
         ),
@@ -366,22 +370,29 @@ class _AccountActionItem extends StatelessWidget {
 }
 
 class _MyMeetingItem extends StatelessWidget {
+  final Widget icon;
   final String label;
   final VoidCallback onTap;
 
-  const _MyMeetingItem({required this.label, required this.onTap});
+  const _MyMeetingItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        icon,
+        const SizedBox(width: 18),
         Expanded(
           child: Text(
             label,
             style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
               color: Colors.black,
             ),
           ),
