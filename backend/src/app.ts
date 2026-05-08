@@ -4,7 +4,7 @@ import cors from "cors";
 import http from "node:http";
 
 import placeSearchRouter from "./routes/placeSearch";
-import jejuWeatherRouter from "./routes/jejuWeather";
+import jejuWeatherRouter from "./routes/jejuweather";
 import oauthRouter from "./routes/oauth";
 import meetingRouter from "./routes/meeting";
 import userRouter from "./routes/user";
