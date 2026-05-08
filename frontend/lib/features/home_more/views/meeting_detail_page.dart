@@ -448,6 +448,14 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                                 await context
                                     .read<MeetingDetailViewModel>()
                                     .leaveMeeting(detail.id);
+
+                                if (!context.mounted) return;
+
+                                Navigator.pushNamedAndRemoveUntil(
+                                  context,
+                                  '/home',
+                                  (route) => false,
+                                );
                               },
                             ),
                           );
@@ -456,7 +464,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                               .read<MeetingDetailViewModel>()
                               .joinMeeting(detail.id);
 
-                          if (!mounted) return;
+                          if (!context.mounted) return;
 
                           await Navigator.pushNamed(
                             context,

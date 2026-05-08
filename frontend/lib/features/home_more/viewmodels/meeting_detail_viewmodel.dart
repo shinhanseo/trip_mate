@@ -68,9 +68,9 @@ class MeetingDetailViewModel extends ChangeNotifier {
       notifyListeners();
 
       await meetingApi.leaveMeeting(meetingId: meetingId);
-      final result = await meetingApi.getMeetingDetail(meetingId: meetingId);
-      meetingDetail = result;
-      _hasLoaded = true;
+
+      meetingDetail = null;
+      _hasLoaded = false;
     } catch (e) {
       rethrow;
     } finally {
