@@ -218,10 +218,10 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
         mm.user_id,
         mm.role,
         mm.joined_at,
-        up.nickname,
+        coalesce(up.nickname, '탈퇴한 사용자') as nickname,
         up.profile_image_url,
-        up.gender,
-        up.age_range
+        coalesce(up.gender, '') as gender,
+        coalesce(up.age_range, '') as age_range
       from meeting_members mm
       join user_profiles up
         on up.user_id = mm.user_id
