@@ -26,9 +26,9 @@ class MyPageModel {
   factory MyPageModel.fromJson(Map<String, dynamic> json) {
     return MyPageModel(
       userId: int.parse(json['id'].toString()),
-      nickname: json['nickname'] as String,
-      gender: json['gender'] as String,
-      ageRange: json['ageRange'] as String,
+      nickname: json['nickname'] as String? ?? '탈퇴한 사용자',
+      gender: json['gender'] as String? ?? '',
+      ageRange: json['ageRange'] as String? ?? '',
       bio: json['bio'] as String?,
       favoriteTags: (json['favoriteTags'] as List<dynamic>?)
           ?.map((e) => e.toString())

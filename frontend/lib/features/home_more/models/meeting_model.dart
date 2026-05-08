@@ -79,12 +79,12 @@ class MeetingMemberModel {
   factory MeetingMemberModel.fromJson(Map<String, dynamic> json) {
     return MeetingMemberModel(
       userId: int.parse(json['userId'].toString()),
-      nickname: json['nickname'] as String,
+      nickname: json['nickname'] as String? ?? '탈퇴한 사용자',
       profileImageUrl: json['profileImageUrl'] as String?,
       role: json['role'] as String,
       joinedAt: DateTime.parse(json['joinedAt'] as String),
-      gender: json['gender'] as String,
-      ageRange: json['ageRange'] as String,
+      gender: json['gender'] as String? ?? '',
+      ageRange: json['ageRange'] as String? ?? '',
     );
   }
 }

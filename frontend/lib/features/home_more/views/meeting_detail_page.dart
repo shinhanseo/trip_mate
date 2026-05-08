@@ -615,8 +615,12 @@ class _UserProfile extends StatelessWidget {
     final bool isHost = role == 'host';
     String badgeText = isHost ? '방장' : '동행자';
     final Color badgeColor = isHost ? AppColors.mintSoft : AppColors.limeSoft;
-    final String genderStr = gender == 'M' ? '남성' : '여성';
-    final String ageStr = '${ageRange[0]}0대';
+    final String genderStr = gender == 'M'
+        ? '남성'
+        : gender == 'F'
+        ? '여성'
+        : '정보 없음';
+    final String ageStr = ageRange.isNotEmpty ? '${ageRange[0]}0대' : '정보 없음';
 
     if (isHost == false && userId == currentUserId) {
       badgeText = '본인';

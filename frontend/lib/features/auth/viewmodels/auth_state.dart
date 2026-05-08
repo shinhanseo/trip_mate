@@ -55,4 +55,10 @@ class AuthState extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> clearLocalSession() async {
+    await tokenStorage.clearTokens();
+    _currentUser = null;
+    notifyListeners();
+  }
 }
