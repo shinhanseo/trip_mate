@@ -9,6 +9,8 @@ datasource db {
 model User {
   id          BigInt    @id @default(autoincrement())
   naverUserId String    @unique @map("naver_user_id")
+  status      String    @default("active") @db.VarChar(20)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
   createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime? @default(now()) @map("updated_at") @db.Timestamptz(6)
 
