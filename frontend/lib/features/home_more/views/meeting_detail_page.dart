@@ -63,8 +63,10 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
             Expanded(
               child: Text(
                 detail.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -123,75 +125,15 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                detail.regionPrimary,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.gray400,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Wrap(
-                spacing: 14,
-                runSpacing: 6,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 22,
-                        color: AppColors.gray500,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        detail.placeText,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: AppColors.neutralGray,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.access_time,
-                        size: 22,
-                        color: AppColors.gray500,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _formatDateTime(detail.scheduledAt),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: AppColors.neutralGray,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
+              _MeetingSummaryCard(
+                region: detail.regionPrimary,
+                placeText: detail.placeText,
+                scheduledAt: _formatDateTime(detail.scheduledAt),
+                tags: [
                   _MeetingTag(
                     text: '${detail.currentMembers}/${detail.maxMembers}명',
                     backgroundColor: AppColors.slate100,
@@ -215,147 +157,131 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                 ],
               ),
 
-              const SizedBox(height: 22),
+              const SizedBox(height: 16),
 
-              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
-
-              const SizedBox(height: 22),
-
-              const Text(
-                '동행 소개',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Text(
-                detail.description,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  height: 1.6,
-                  color: AppColors.gray600,
-                ),
-              ),
-
-              const SizedBox(height: 22),
-
-              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
-
-              const SizedBox(height: 22),
-
-              const Text(
-                '함께할 여행자',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              ...detail.members.map((member) {
-                return Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/userprofile',
-                        arguments: member.userId,
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: _UserProfile(
-                          nickname: member.nickname,
-                          role: member.role,
-                          gender: member.gender,
-                          ageRange: member.ageRange,
-                          profileImageUrl: member.profileImageUrl ?? '',
-                          userId: member.userId,
-                          currentUserId: detail.currentUserId,
-                        ),
-                      ),
-                    ),
+              _DetailSection(
+                title: '동행 소개',
+                child: Text(
+                  detail.description.isEmpty
+                      ? '소개글이 없습니다.'
+                      : detail.description,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    height: 1.6,
+                    color: AppColors.gray600,
                   ),
-                );
-              }),
+                ),
+              ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
-
-              const SizedBox(height: 20),
-
-              SizedBox(
-                height: 220,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Stack(
-                    children: [
-                      NaverMap(
-                        options: NaverMapViewOptions(
-                          initialCameraPosition: NCameraPosition(
-                            target: NLatLng(detail.placeLat, detail.placeLng),
-                            zoom: 15,
-                          ),
-                          zoomGesturesEnable: true,
-                          scrollGesturesEnable: true,
-                        ),
-                        onMapReady: (controller) async {
-                          await controller.addOverlay(
-                            NMarker(
-                              id: 'meeting_place',
-                              position: NLatLng(
-                                detail.placeLat,
-                                detail.placeLng,
-                              ),
-                              caption: NOverlayCaption(
-                                text: detail.placeText,
-                                textSize: 16,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      Positioned(
-                        right: 12,
-                        bottom: 12,
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
+              _DetailSection(
+                title: '함께할 여행자',
+                trailing: '${detail.currentMembers}명',
+                child: Column(
+                  children: detail.members.map((member) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            Navigator.pushNamed(
                               context,
-                              MaterialPageRoute(
-                                builder: (_) => MeetingMapPage(
-                                  title: detail.title,
-                                  placeText: detail.placeText,
-                                  lat: detail.placeLat,
-                                  lng: detail.placeLng,
+                              '/userprofile',
+                              arguments: member.userId,
+                            );
+                          },
+                          child: _UserProfile(
+                            nickname: member.nickname,
+                            role: member.role,
+                            gender: member.gender,
+                            ageRange: member.ageRange,
+                            profileImageUrl: member.profileImageUrl ?? '',
+                            userId: member.userId,
+                            currentUserId: detail.currentUserId,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              _DetailSection(
+                title: '만나는 장소',
+                child: SizedBox(
+                  height: 220,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Stack(
+                      children: [
+                        NaverMap(
+                          options: NaverMapViewOptions(
+                            initialCameraPosition: NCameraPosition(
+                              target: NLatLng(detail.placeLat, detail.placeLng),
+                              zoom: 15,
+                            ),
+                            zoomGesturesEnable: true,
+                            scrollGesturesEnable: true,
+                          ),
+                          onMapReady: (controller) async {
+                            await controller.addOverlay(
+                              NMarker(
+                                id: 'meeting_place',
+                                position: NLatLng(
+                                  detail.placeLat,
+                                  detail.placeLng,
+                                ),
+                                caption: NOverlayCaption(
+                                  text: detail.placeText,
+                                  textSize: 16,
                                 ),
                               ),
                             );
                           },
-                          child: const Text('지도 크게 보기'),
                         ),
-                      ),
-                    ],
+                        Positioned(
+                          right: 12,
+                          bottom: 12,
+                          child: TextButton.icon(
+                            style: TextButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: AppColors.black,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => MeetingMapPage(
+                                    title: detail.title,
+                                    placeText: detail.placeText,
+                                    lat: detail.placeLat,
+                                    lng: detail.placeLng,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.open_in_full, size: 16),
+                            label: const Text(
+                              '크게 보기',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -368,10 +294,10 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
           : SafeArea(
               minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: SizedBox(
-                height: 58,
+                height: 54,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
                     gradient: const LinearGradient(
                       colors: [AppColors.brandTeal, AppColors.brandLime],
                       begin: Alignment.centerLeft,
@@ -487,8 +413,9 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
+                      surfaceTintColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     child: Text(
@@ -498,7 +425,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                           ? '동행 나가기'
                           : '동행 참여하기',
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
@@ -560,6 +487,138 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
   }
 }
 
+class _MeetingSummaryCard extends StatelessWidget {
+  final String region;
+  final String placeText;
+  final String scheduledAt;
+  final List<Widget> tags;
+
+  const _MeetingSummaryCard({
+    required this.region,
+    required this.placeText,
+    required this.scheduledAt,
+    required this.tags,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.gray50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.gray200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            region,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.gray400,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _SummaryInfoRow(icon: Icons.location_on_outlined, text: placeText),
+          const SizedBox(height: 8),
+          _SummaryInfoRow(icon: Icons.access_time, text: scheduledAt),
+          const SizedBox(height: 14),
+          Wrap(spacing: 8, runSpacing: 8, children: tags),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _SummaryInfoRow({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 19, color: AppColors.gray500),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 15,
+              color: AppColors.gray600,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailSection extends StatelessWidget {
+  final String title;
+  final String? trailing;
+  final Widget child;
+
+  const _DetailSection({
+    required this.title,
+    required this.child,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.gray200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.black,
+                  ),
+                ),
+              ),
+              if (trailing != null)
+                Text(
+                  trailing!,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.gray500,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
 class _MeetingTag extends StatelessWidget {
   final String text;
   final Color backgroundColor;
@@ -574,23 +633,16 @@ class _MeetingTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: textColor.withValues(alpha: 0.18)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: textColor,
         ),
@@ -634,77 +686,78 @@ class _UserProfile extends StatelessWidget {
       badgeText = '본인';
     }
 
-    return IntrinsicWidth(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.gray200, width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.10),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: AppColors.gray100,
-              backgroundImage: profileImageUrl.isNotEmpty
-                  ? NetworkImage(profileImageUrl)
-                  : null,
-              child: profileImageUrl.isEmpty
-                  ? const Icon(Icons.person, color: AppColors.gray400)
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Column(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.gray50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.gray200),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: AppColors.gray100,
+            backgroundImage: profileImageUrl.isNotEmpty
+                ? NetworkImage(profileImageUrl)
+                : null,
+            child: profileImageUrl.isEmpty
+                ? const Icon(Icons.person, color: AppColors.gray400)
+                : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   nickname,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
                     color: Colors.black,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   '$ageStr / $genderStr',
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.gray500,
                   ),
                 ),
               ],
             ),
-            const SizedBox(width: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: badgeColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                badgeText,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: badgeColor,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              badgeText,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(
+            Icons.chevron_right_rounded,
+            size: 22,
+            color: AppColors.gray400,
+          ),
+        ],
       ),
     );
   }
