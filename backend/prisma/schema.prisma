@@ -22,6 +22,7 @@ model User {
   meetingMembers   MeetingMember[]
   chatRoomMembers  ChatRoomMember[]
   sentChatMessages ChatMessage[]    @relation("ChatMessageSender")
+  submittedReports Report[]         @relation("ReportReporter")
 
   @@map("users")
 }
@@ -178,4 +179,23 @@ model ChatMessage {
   @@index([roomId, createdAt], map: "chat_messages_room_id_created_at_idx")
   @@index([senderId], map: "chat_messages_sender_id_idx")
   @@map("chat_messages")
+}
+
+model Report {
+  id         BigInt    @id @default(autoincrement())
+  reporterId BigInt    @map("reporter_id")
+  targetType String    @map("target_type") @db.VarChar(20)
+  targetId   BigInt    @map("target_id")
+  reason     String    @db.VarChar(50)
+  detail     String?
+  status     String    @default("pending") @db.VarChar(20)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  reviewedAt DateTime? @map("reviewed_at") @db.Timestamptz(6)
+
+  reporter User @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId], map: "reports_reporter_id_idx")
+  @@index([targetType, targetId], map: "reports_target_type_target_id_idx")
+  @@index([status, createdAt], map: "reports_status_created_at_idx")
+  @@map("reports")
 }
