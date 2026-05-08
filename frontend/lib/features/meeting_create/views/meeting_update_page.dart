@@ -151,6 +151,64 @@ class _MeetingUpdatePageState extends State<MeetingUpdatePage> {
     );
   }
 
+  InputDecoration _fieldDecoration(String hintText, {IconData? prefixIcon}) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: const TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        color: AppColors.gray400,
+      ),
+      prefixIcon: prefixIcon == null
+          ? null
+          : Icon(prefixIcon, size: 20, color: AppColors.gray500),
+      filled: true,
+      fillColor: AppColors.gray50,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: AppColors.gray200, width: 1.2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: AppColors.gray200, width: 1.2),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(color: AppColors.brandMint, width: 1.6),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: AppColors.black,
+        ),
+      ),
+    );
+  }
+
+  Widget _section({
+    required String title,
+    required Widget child,
+    double bottomGap = 22,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomGap),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [_sectionTitle(title), child],
+      ),
+    );
+  }
+
   Future<void> _submitMeeting() async {
     final vm = context.read<MeetingUpdateViewModel>();
     final scheduledAt = _getScheduledAt();
@@ -265,289 +323,184 @@ class _MeetingUpdatePageState extends State<MeetingUpdatePage> {
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
+            top: 8,
             bottom: MediaQuery.of(context).viewInsets.bottom + 24,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const Text(
-                    '제목',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _titleController,
-                      textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                        hintText: '제목을 입력하세요. (최대 20자)',
-                        isDense: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(22),
-                          borderSide: const BorderSide(
-                            color: AppColors.mint,
-                            width: 1.5,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(22),
-                          borderSide: const BorderSide(
-                            color: AppColors.brandMint,
-                            width: 1.5,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(22),
-                          borderSide: const BorderSide(
-                            color: AppColors.brandMint,
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return '제목을 입력해주세요 (최대 20자)';
-                        }
+              _section(
+                title: '제목',
+                child: TextFormField(
+                  controller: _titleController,
+                  textInputAction: TextInputAction.next,
+                  maxLength: 20,
+                  decoration: _fieldDecoration(
+                    '어떤 동행을 모집하나요?',
+                    prefixIcon: Icons.edit_outlined,
+                  ).copyWith(counterText: ''),
+                ),
+              ),
 
-                        if (value.trim().length > 20) {
-                          return '제목은 20자를 넘길 수 없습니다.';
-                        }
-
-                        return null;
-                      },
+              _section(
+                title: '장소',
+                child: InkWell(
+                  onTap: _openPlaceSearchPage,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  const Text(
-                    '장소',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  Expanded(
-                    child: InkWell(
-                      onTap: _openPlaceSearchPage,
-                      borderRadius: BorderRadius.circular(22),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 9,
+                    decoration: BoxDecoration(
+                      color: AppColors.gray50,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.gray200, width: 1.2),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 21,
+                          color: AppColors.gray500,
                         ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(22),
-                          border: Border.all(
-                            color: AppColors.brandMint,
-                            width: 1.5,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _selectedPlaceName ?? '장소를 선택하세요',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: _selectedPlaceName == null
+                                  ? AppColors.gray400
+                                  : AppColors.black,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          _selectedPlaceName ?? '장소를 선택하세요',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: _selectedPlaceName == null
-                                ? AppColors.mediumGray
-                                : Colors.black,
-                          ),
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.chevron_right_rounded,
+                          size: 24,
+                          color: AppColors.gray400,
                         ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  const Text(
-                    '시간',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  MeetingTimeButton(
-                    icon: Icons.calendar_month_outlined,
-                    text: meetingDateButtonLabel(_selectedDate),
-                    onTap: () async {
-                      await _pickDate();
-                    },
-                    color: _selectedDate == null
-                        ? AppColors.disabledGray
-                        : AppColors.black,
-                  ),
-                  const SizedBox(width: 14),
-                  MeetingTimeButton(
-                    icon: Icons.access_time,
-                    text: meetingTimeButtonLabel(_selectedTime),
-                    onTap: () async {
-                      await _pickTime();
-                    },
-                    color: _selectedTime == null
-                        ? AppColors.disabledGray
-                        : AppColors.black,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '인원',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8),
-                      MemberCountSelector(
-                        count: _memberCount,
-                        onChanged: (value) {
-                          setState(() {
-                            _memberCount = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(width: 32),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      const Text(
-                        '성별',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      MeetingGenderChip(
-                        selectedGender: selectedGender,
-                        allowDeselection: false,
-                        onChanged: (values) {
-                          if (values != 'any' && vm.gender != values) {
-                            showDialog(
-                              context: context,
-                              builder: (_) => const CustomMessageDialog(
-                                title: '선택할 수 없어요.',
-                                message:
-                                    '본인의 성별이 포함된 조건만 선택할 수 있어요.\n다시 한번 확인해주세요.',
-                              ),
-                            );
-
-                            return;
-                          }
-                          setState(() {
-                            selectedGender = values;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              const Text(
-                '연령',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-
-              MeetingAgeGroupMultiChip(
-                selectedAgeGroups: selectedAgeGroups,
-                onChanged: (values) {
-                  setState(() {
-                    selectedAgeGroups = values;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              const Text(
-                '카테고리',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-
-              MeetingCategoryChip(
-                selectedCategory: selectedCategory,
-                allowDeselection: false,
-                onChanged: (values) {
-                  setState(() {
-                    selectedCategory = values;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              const Text(
-                '동행 소개',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 8),
-
-              TextFormField(
-                maxLines: 5,
-                controller: _descriptionController,
-                textInputAction: TextInputAction.next,
-                decoration: InputDecoration(
-                  hintText: '동행 설명을 작성해주세요',
-                  isDense: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(22),
-                    borderSide: const BorderSide(
-                      color: AppColors.mint,
-                      width: 1.5,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(22),
-                    borderSide: const BorderSide(
-                      color: AppColors.brandMint,
-                      width: 1.5,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(22),
-                    borderSide: const BorderSide(
-                      color: AppColors.brandMint,
-                      width: 1.5,
+                      ],
                     ),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return '제목을 입력해주세요 (최대 20자)';
-                  }
+              ),
 
-                  if (value.trim().length > 20) {
-                    return '제목은 20자를 넘길 수 없습니다.';
-                  }
+              _section(
+                title: '시간',
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    MeetingTimeButton(
+                      icon: Icons.calendar_month_outlined,
+                      text: meetingDateButtonLabel(_selectedDate),
+                      onTap: () async {
+                        await _pickDate();
+                      },
+                      color: _selectedDate == null
+                          ? AppColors.disabledGray
+                          : AppColors.black,
+                    ),
+                    MeetingTimeButton(
+                      icon: Icons.access_time,
+                      text: meetingTimeButtonLabel(_selectedTime),
+                      onTap: () async {
+                        await _pickTime();
+                      },
+                      color: _selectedTime == null
+                          ? AppColors.disabledGray
+                          : AppColors.black,
+                    ),
+                  ],
+                ),
+              ),
 
-                  return null;
-                },
+              _section(
+                title: '인원',
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: MemberCountSelector(
+                    count: _memberCount,
+                    onChanged: (value) {
+                      setState(() {
+                        _memberCount = value;
+                      });
+                    },
+                  ),
+                ),
+              ),
+
+              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
+              const SizedBox(height: 22),
+
+              _section(
+                title: '성별',
+                child: MeetingGenderChip(
+                  selectedGender: selectedGender,
+                  allowDeselection: false,
+                  onChanged: (values) {
+                    if (values != 'any' && vm.gender != values) {
+                      showDialog(
+                        context: context,
+                        builder: (_) => const CustomMessageDialog(
+                          title: '선택할 수 없어요.',
+                          message: '본인의 성별이 포함된 조건만 선택할 수 있어요.\n다시 한번 확인해주세요.',
+                        ),
+                      );
+
+                      return;
+                    }
+                    setState(() {
+                      selectedGender = values;
+                    });
+                  },
+                ),
+              ),
+
+              _section(
+                title: '연령',
+                child: MeetingAgeGroupMultiChip(
+                  selectedAgeGroups: selectedAgeGroups,
+                  onChanged: (values) {
+                    setState(() {
+                      selectedAgeGroups = values;
+                    });
+                  },
+                ),
+              ),
+
+              _section(
+                title: '카테고리',
+                child: MeetingCategoryChip(
+                  selectedCategory: selectedCategory,
+                  allowDeselection: false,
+                  onChanged: (values) {
+                    setState(() {
+                      selectedCategory = values;
+                    });
+                  },
+                ),
+              ),
+
+              const Divider(color: AppColors.gray200, thickness: 1, height: 1),
+              const SizedBox(height: 22),
+
+              _section(
+                title: '동행 소개',
+                bottomGap: 0,
+                child: TextFormField(
+                  maxLines: 5,
+                  controller: _descriptionController,
+                  textInputAction: TextInputAction.newline,
+                  decoration: _fieldDecoration('함께할 여행자에게 알려주고 싶은 내용을 적어주세요'),
+                ),
               ),
             ],
           ),
@@ -571,18 +524,29 @@ class _MeetingUpdatePageState extends State<MeetingUpdatePage> {
               ),
               child: InkWell(
                 borderRadius: BorderRadius.circular(20),
-                onTap: () async {
-                  await _submitMeeting();
-                },
-                child: const Center(
-                  child: Text(
-                    '동행 수정하기',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
+                onTap: vm.isLoading
+                    ? null
+                    : () async {
+                        await _submitMeeting();
+                      },
+                child: Center(
+                  child: vm.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          '동행 수정하기',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ),
