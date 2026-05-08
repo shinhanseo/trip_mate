@@ -704,6 +704,58 @@ router.delete("/me", authRequired, async (req: AuthRequest, res) => {
     }
 
     await prisma.$transaction([
+      prisma.$executeRaw`
+        update meetings
+        set status = 'cancelled',
+            updated_at = ${deletedAt}
+        where host_user_id = ${prismaUserId}
+          and status <> 'cancelled'
+      `,
+
+      prisma.$executeRaw`
+        update meeting_members mm
+        set status = 'left',
+            left_at = ${deletedAt}
+        from meetings m
+        where mm.meeting_id = m.id
+          and m.host_user_id = ${prismaUserId}
+          and mm.status = 'joined'
+      `,
+
+      prisma.$executeRaw`
+        update meeting_members
+        set status = 'left',
+            left_at = ${deletedAt}
+        where user_id = ${prismaUserId}
+          and status = 'joined'
+      `,
+
+      prisma.$executeRaw`
+        delete from chat_room_members crm
+        using chat_rooms cr, meetings m
+        where crm.room_id = cr.id
+          and cr.meeting_id = m.id
+          and m.host_user_id = ${prismaUserId}
+      `,
+
+      prisma.$executeRaw`
+        delete from chat_room_members
+        where user_id = ${prismaUserId}
+      `,
+
+      prisma.$executeRaw`
+        update meetings m
+        set status = 'open',
+            updated_at = ${deletedAt}
+        where m.status = 'closed'
+          and (
+            select count(*)
+            from meeting_members mm
+            where mm.meeting_id = m.id
+              and mm.status = 'joined'
+          ) < m.max_members
+      `,
+
       prisma.refreshToken.updateMany({
         where: {
           userId: prismaUserId,
