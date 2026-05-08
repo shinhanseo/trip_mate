@@ -31,21 +31,21 @@ class ChatRoomCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Container(
           width: double.infinity,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          margin: const EdgeInsets.symmetric(vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AppColors.gray200, width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.10),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -60,7 +60,7 @@ class ChatRoomCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.black,
                       ),
@@ -84,7 +84,7 @@ class ChatRoomCard extends StatelessWidget {
                       isPastMeeting ? '동행 종료' : '동행 예정',
                       style: TextStyle(
                         color: AppColors.white,
-                        fontSize: 16,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -103,7 +103,7 @@ class ChatRoomCard extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.location_on_outlined,
-                        size: 22,
+                        size: 18,
                         color: AppColors.gray500,
                       ),
                       const SizedBox(width: 4),
@@ -122,14 +122,14 @@ class ChatRoomCard extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.access_time,
-                        size: 22,
+                        size: 18,
                         color: AppColors.gray500,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         _formatMeetingDateTime(scheduledAt),
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           color: AppColors.neutralGray,
                           fontWeight: FontWeight.w600,
                         ),
@@ -138,16 +138,16 @@ class ChatRoomCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
+                  horizontal: 14,
+                  vertical: 12,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.gray50,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -158,7 +158,7 @@ class ChatRoomCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           color: hasLastMessage
                               ? AppColors.gray500
                               : AppColors.gray400,
