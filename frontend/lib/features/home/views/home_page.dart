@@ -176,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                                   fontSize: 17,
                                   fontWeight: FontWeight.w600,
                                   height: 1.4,
-                                  color: AppColors.brandTeal,
+                                  color: AppColors.dark,
                                 ),
                               ),
                             ),
