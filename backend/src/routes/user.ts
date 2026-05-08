@@ -5,6 +5,7 @@ import { ok, fail } from "../utils/response";
 import { isValidNickname, validateProfileInput } from "../modules/users/user-invalid";
 import { isValidAgeGroup, isValidCategory, isValidGender, isValidRegion } from "../modules/meetings/meetings-invalid";
 import { prisma } from "../lib/prisma";
+import { randomUUID } from "crypto";
 
 const router = Router();
 
@@ -677,6 +678,80 @@ router.get("/map", authRequired, async (req: AuthRequest, res) => {
     return fail(res, 500, "failed to get my map", error?.message);
   } finally {
     client.release();
+  }
+});
+
+router.delete("/me", authRequired, async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
+  const prismaUserId = BigInt(userId);
+  const deletedAt = new Date();
+
+  try {
+    const userRes = await prisma.user.findUnique({
+      where: { id: prismaUserId },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (userRes == null) {
+      return fail(res, 404, "user not found");
+    }
+
+    if (userRes.status !== "active") {
+      return fail(res, 409, "user is not active");
+    }
+
+    await prisma.$transaction([
+      prisma.refreshToken.updateMany({
+        where: {
+          userId: prismaUserId,
+          revokedAt: null,
+        },
+        data: {
+          revokedAt: deletedAt,
+          updatedAt: deletedAt,
+        },
+      }),
+
+      prisma.socialAccount.deleteMany({
+        where: {
+          userId: prismaUserId,
+        },
+      }),
+
+      prisma.userProfile.update({
+        where: {
+          userId: prismaUserId,
+        },
+        data: {
+          nickname: null,
+          gender: null,
+          ageRange: null,
+          favoriteTags: [],
+          bio: null,
+          profileImageUrl: process.env.INACTIVE_PROFILE_URL ?? null,
+          updatedAt: deletedAt,
+        },
+      }),
+
+      prisma.user.update({
+        where: {
+          id: prismaUserId,
+        },
+        data: {
+          status: "deleted",
+          naverUserId: `deleted:${userId}:${randomUUID()}`,
+          updatedAt: deletedAt,
+          deletedAt,
+        },
+      }),
+    ]);
+
+    return ok(res, { deleted: true });
+  } catch (error: any) {
+    return fail(res, 500, "failed to delete my account", error?.message);
   }
 });
 
