@@ -96,7 +96,7 @@ class _MyMeetingListPageState extends State<MyMeetingListPage> {
         title: Text(
           _title,
           style: TextStyle(
-            fontSize: 32,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
