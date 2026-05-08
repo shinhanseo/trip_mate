@@ -9,6 +9,7 @@ class MyPageViewModel extends ChangeNotifier {
 
   MyPageModel? myInfo;
   bool isLoading = false;
+  bool isDeleting = false;
   String? errorMessage;
   bool isSuccess = false;
 
@@ -30,6 +31,24 @@ class MyPageViewModel extends ChangeNotifier {
       myInfo = null;
     } finally {
       isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteUser() async {
+    try {
+      if (isDeleting) return;
+
+      isDeleting = true;
+      errorMessage = null;
+      notifyListeners();
+
+      await myPageApi.deleteUser();
+    } catch (e) {
+      errorMessage = e.toString().replaceFirst('Exception: ', '');
+      rethrow;
+    } finally {
+      isDeleting = false;
       notifyListeners();
     }
   }
