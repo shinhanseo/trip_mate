@@ -34,7 +34,7 @@ class UserProfileSummary extends StatelessWidget {
               ? const Icon(Icons.person, color: AppColors.gray400)
               : null,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 25),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
