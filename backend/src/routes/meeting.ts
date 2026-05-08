@@ -747,6 +747,16 @@ router.delete("/:id", authRequired, async (req: AuthRequest, res: Response) => {
       [meetingId]
     );
 
+    await client.query(
+      `
+      delete from chat_room_members crm
+      using chat_rooms cr
+      where crm.room_id = cr.id
+        and cr.meeting_id = $1
+      `,
+      [meetingId]
+    );
+
     await client.query("commit");
 
     return ok(res, {

@@ -328,6 +328,7 @@ router.get("/rooms", authRequired, async (req: AuthRequest, res: Response) => {
       left join user_profiles up
         on up.user_id = lm.sender_id
       where crm.user_id = $1
+        and m.status <> 'cancelled'
       order by
         coalesce(lm.created_at, cr.updated_at) desc,
         cr.id desc
