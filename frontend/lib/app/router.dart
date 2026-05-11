@@ -310,14 +310,27 @@ class AppRouter {
         final userId = settings.arguments as int;
 
         return MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider(
-            create: (_) => UserProfileViewModel(
-              myPageApi: MyPageApi(
-                baseUrl: baseUrl,
-                authApi: AuthApi(baseUrl: baseUrl),
-                tokenStorage: TokenStorage(),
+          builder: (_) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                create: (_) => UserProfileViewModel(
+                  myPageApi: MyPageApi(
+                    baseUrl: baseUrl,
+                    authApi: AuthApi(baseUrl: baseUrl),
+                    tokenStorage: TokenStorage(),
+                  ),
+                ),
               ),
-            ),
+              ChangeNotifierProvider(
+                create: (_) => ReportViewModel(
+                  reportApi: ReportApi(
+                    baseUrl: baseUrl,
+                    authApi: AuthApi(baseUrl: baseUrl),
+                    tokenStorage: TokenStorage(),
+                  ),
+                ),
+              ),
+            ],
             child: UserProfileView(userId: userId),
           ),
           settings: settings,
