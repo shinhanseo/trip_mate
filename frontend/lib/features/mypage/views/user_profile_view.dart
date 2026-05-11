@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../widgets/profile_summary.dart';
 import '../../report/models/report_model.dart';
 import '../../report/viewmodel/report_viewmodel.dart';
+import '../../auth/viewmodels/auth_state.dart';
 
 class UserProfileView extends StatefulWidget {
   final int userId;
@@ -28,6 +29,9 @@ class _UserProfileViewState extends State<UserProfileView> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthState>();
+    final currentUserId = authState.currentUser?.id;
+    final isMe = currentUserId == widget.userId;
     final vm = context.watch<UserProfileViewModel>();
     final userProfile = vm.userProfile;
 
@@ -65,35 +69,35 @@ class _UserProfileViewState extends State<UserProfileView> {
             ),
 
             const SizedBox(width: 12),
-
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              color: Colors.white,
-              padding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              onSelected: (value) async {
-                if (value == 'report') {
-                  await _showUserReportBottomSheet(context);
-                }
-              },
-              itemBuilder: (context) => const [
-                PopupMenuItem(
-                  value: 'report',
-                  child: Center(
-                    child: Text(
-                      '신고하기',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.red700,
+            if (!isMe)
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                color: Colors.white,
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                onSelected: (value) async {
+                  if (value == 'report') {
+                    await _showUserReportBottomSheet(context);
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'report',
+                    child: Center(
+                      child: Text(
+                        '신고하기',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.red700,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
           ],
         ),
       ),
