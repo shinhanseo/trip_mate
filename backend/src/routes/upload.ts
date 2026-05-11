@@ -19,7 +19,6 @@ router.post("/profile-image", authRequired, upload.single("image"), async (req: 
       imageUrl,
     });
   } catch (error: any) {
-    console.error("POST /upload/profile-image error:", error);
     return fail(res, 500, "failed to upload image");
   }
 }

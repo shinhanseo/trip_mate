@@ -98,7 +98,6 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
       })),
     });
   } catch (error: any) {
-    console.error("GET /meetings error:", error);
     return fail(res, 500, "failed to load meetings");
   } finally {
     client.release();
@@ -268,7 +267,6 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error("GET /meetings/:id error:", error);
     return fail(res, 500, "failed to load meeting detail");
   } finally {
     client.release();
@@ -674,7 +672,6 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res: Response) => {
     });
   } catch (error: any) {
     await client.query("rollback");
-    console.error("PATCH /meetings/:id error:", error);
     return fail(res, 500, "failed to update meeting");
   } finally {
     client.release();
@@ -764,7 +761,6 @@ router.delete("/:id", authRequired, async (req: AuthRequest, res: Response) => {
     });
   } catch (error: any) {
     await client.query("rollback");
-    console.error("DELETE /meetings/:id error:", error);
     return fail(res, 500, "failed to cancel meeting");
   } finally {
     client.release();
@@ -1012,7 +1008,6 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
     );
   } catch (error: any) {
     await client.query("rollback");
-    console.error("POST /meetings/:id/join error:", error);
     return fail(res, 500, "failed to join meeting");
   } finally {
     client.release();

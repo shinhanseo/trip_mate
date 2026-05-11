@@ -262,7 +262,6 @@ router.post(
       );
     } catch (error: any) {
       await client.query("rollback");
-      console.error("POST /chat/meetings/:meetingId/messages error:", error);
       return fail(res, 500, "failed to send chat message");
     } finally {
       client.release();
@@ -360,7 +359,6 @@ router.get("/rooms", authRequired, async (req: AuthRequest, res: Response) => {
       })),
     });
   } catch (error: any) {
-    console.error("GET /chat/rooms error:", error);
     return fail(res, 500, "failed to load chat rooms");
   } finally {
     client.release();
