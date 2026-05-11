@@ -122,7 +122,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                   ),
                 ],
               ),
-            if (!isHost && isEnded)
+            if (!isHost)
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 color: Colors.white,
