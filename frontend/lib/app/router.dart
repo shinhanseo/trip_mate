@@ -51,6 +51,9 @@ import '../features/meeting_create/services/place_search_api.dart';
 import '../features/meeting_create/views/meeting_update_page.dart';
 import '../features/meeting_create/viewmodels/meeting_update_viewmodel.dart';
 
+import '../features/report/viewmodel/report_viewmodel.dart';
+import '../features/report/services/report_api.dart';
+
 class AppRouter {
   static const String root = '/';
   static const String home = '/home';
@@ -216,14 +219,27 @@ class AppRouter {
         final meetingId = settings.arguments as int;
 
         return MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider(
-            create: (_) => MeetingDetailViewModel(
-              meetingApi: MeetingApi(
-                baseUrl: baseUrl,
-                authApi: AuthApi(baseUrl: baseUrl),
-                tokenStorage: TokenStorage(),
+          builder: (_) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                create: (_) => MeetingDetailViewModel(
+                  meetingApi: MeetingApi(
+                    baseUrl: baseUrl,
+                    authApi: AuthApi(baseUrl: baseUrl),
+                    tokenStorage: TokenStorage(),
+                  ),
+                ),
               ),
-            ),
+              ChangeNotifierProvider(
+                create: (_) => ReportViewModel(
+                  reportApi: ReportApi(
+                    baseUrl: baseUrl,
+                    authApi: AuthApi(baseUrl: baseUrl),
+                    tokenStorage: TokenStorage(),
+                  ),
+                ),
+              ),
+            ],
             child: MeetingDetailPage(meetingId: meetingId),
           ),
           settings: settings,
