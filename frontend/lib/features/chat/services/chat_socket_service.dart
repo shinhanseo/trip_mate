@@ -43,7 +43,6 @@ class ChatSocketService {
 
     _socket!.onConnect((_) {
       _socket!.emit('join_room', {'meetingId': meetingId});
-      debugPrint('SOCKET onConnect meetingId=$meetingId');
     });
 
     _socket!.on('joined_room', (_) {
@@ -51,13 +50,10 @@ class ChatSocketService {
       if (!joinCompleter.isCompleted) {
         joinCompleter.complete();
       }
-      debugPrint('SOCKET joined_room meetingId=$meetingId');
     });
 
     _socket!.on('new_message', (data) {
       try {
-        debugPrint('SOCKET on new_message data=$data');
-
         final message = _parseMessage(data);
         onNewMessage(message);
 
@@ -65,15 +61,12 @@ class ChatSocketService {
           markAsRead(meetingId: meetingId, lastReadMessageId: message.id);
         }
       } catch (e) {
-        debugPrint('SOCKET new_message parse error=$e data=$data');
         onError('새 메시지 형식이 올바르지 않습니다.');
       }
     });
 
     _socket!.on('message_read', (data) {
       try {
-        debugPrint('SOCKET on message_read data=$data');
-
         final map = Map<String, dynamic>.from(data as Map);
 
         onMessageRead(
@@ -81,9 +74,7 @@ class ChatSocketService {
           previousLastReadMessageId: _toInt(map['previousLastReadMessageId']),
           lastReadMessageId: _toInt(map['lastReadMessageId']),
         );
-      } catch (e) {
-        debugPrint('SOCKET message_read parse error=$e data=$data');
-      }
+      } catch (e) {}
     });
 
     _socket!.on('socket_error', (data) {

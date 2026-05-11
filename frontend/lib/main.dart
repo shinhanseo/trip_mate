@@ -26,9 +26,7 @@ Future<void> main() async {
 
     await FlutterNaverMap().init(
       clientId: naverMapClientId,
-      onAuthFailed: (ex) {
-        debugPrint('네이버 지도 인증 실패: $ex');
-      },
+      onAuthFailed: (ex) {},
     );
 
     runApp(

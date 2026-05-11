@@ -61,8 +61,6 @@ class ChatDetailViewModel extends ChangeNotifier {
       final accessToken = await chatApi.getValidAccessToken();
       await _connectSocketWithToken(meetingId, accessToken);
     } catch (error) {
-      debugPrint('VM socket connect retry after token refresh error=$error');
-
       final refreshedAccessToken = await chatApi.getValidAccessToken(
         forceRefresh: true,
       );
@@ -113,10 +111,6 @@ class ChatDetailViewModel extends ChangeNotifier {
       roomId: current.roomId,
       meeting: current.meeting,
       messages: [...current.messages, message],
-    );
-
-    debugPrint(
-      'VM handleNewMessage id=${message.id} content=${message.content}',
     );
 
     notifyListeners();

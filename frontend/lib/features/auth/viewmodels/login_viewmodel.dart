@@ -75,8 +75,6 @@ class LoginViewModel extends ChangeNotifier {
     _isHandlingCallback = true;
 
     try {
-      print('[Login] callback uri=$uri');
-
       if (success != 'true') {
         isLoading = false;
         errorMessage = message ?? '네이버 로그인에 실패했습니다.';
@@ -95,8 +93,6 @@ class LoginViewModel extends ChangeNotifier {
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
       );
-
-      print('[Login] tokens saved');
 
       loginResult = result;
       errorMessage = null;
