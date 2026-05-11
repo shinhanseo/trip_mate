@@ -49,7 +49,11 @@ class _UserProfileViewState extends State<UserProfileView> {
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,
         scrolledUnderElevation: 0,
-        title: Text(userProfile.nickname),
+        centerTitle: false,
+        title: Text(
+          userProfile.nickname,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -57,40 +61,65 @@ class _UserProfileViewState extends State<UserProfileView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              UserProfileSummary(
-                nickname: userProfile.nickname,
-                gender: userProfile.gender,
-                ageRange: userProfile.ageRange,
-                bio: userProfile.bio,
-                favoriteTags: categories,
-                profileImage: userProfile.profileImage,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: AppColors.gray50,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.gray200),
+                ),
+                child: UserProfileSummary(
+                  nickname: userProfile.nickname,
+                  gender: userProfile.gender,
+                  ageRange: userProfile.ageRange,
+                  bio: userProfile.bio,
+                  favoriteTags: categories,
+                  profileImage: userProfile.profileImage,
+                ),
               ),
 
-              const SizedBox(height: 42),
+              const SizedBox(height: 20),
 
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: ProfileCountItem(
-                      count: userProfile.totalCount,
-                      label: '전체 참여한 동행',
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.gray200),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: ProfileCountItem(
+                        count: userProfile.totalCount,
+                        label: '전체 참여한 동행',
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: ProfileCountItem(
-                      count: userProfile.hostCount,
-                      label: '내가 만든 동행',
+                    Container(width: 1, height: 42, color: AppColors.gray200),
+                    Expanded(
+                      child: ProfileCountItem(
+                        count: userProfile.hostCount,
+                        label: '만든 동행',
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: ProfileCountItem(
-                      count: userProfile.ingCount,
-                      label: '현재 참가한 동행',
+                    Container(width: 1, height: 42, color: AppColors.gray200),
+                    Expanded(
+                      child: ProfileCountItem(
+                        count: userProfile.ingCount,
+                        label: '현재 참가한 동행',
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),
