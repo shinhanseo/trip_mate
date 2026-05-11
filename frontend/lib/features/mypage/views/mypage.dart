@@ -9,6 +9,7 @@ import '../widgets/profile_summary.dart';
 import '../../auth/viewmodels/auth_state.dart';
 import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/custom_message_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
@@ -222,6 +223,37 @@ class _MyPageState extends State<MyPage> {
     );
   }
 
+  Future<void> _openInquiryEmail() async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: 'imkara123@gmail.com',
+      queryParameters: {
+        'subject': '[모행] 문의합니다',
+        'body': '''
+          안녕하세요. 모행 문의입니다.
+
+          문의 내용:
+
+
+          ---
+          사용자 정보
+          닉네임:
+          사용자 ID:
+          ''',
+      },
+    );
+
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    if (!launched) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('메일 앱을 열 수 없습니다.')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<MyPageViewModel>();
@@ -423,6 +455,11 @@ class _MyPageState extends State<MyPage> {
                     icon: Icons.settings_outlined,
                     label: '계정 설정',
                     onTap: _openAccountSettings,
+                  ),
+                  _MyMeetingItem(
+                    icon: Icons.support_agent_outlined,
+                    label: '문의하기',
+                    onTap: _openInquiryEmail,
                   ),
                 ],
               ),
