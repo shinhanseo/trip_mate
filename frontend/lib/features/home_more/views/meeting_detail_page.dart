@@ -6,6 +6,8 @@ import '../../../core/widgets/custom_message_dialog.dart';
 import '../../../core/widgets/confirm_dialog.dart';
 import './meeting_map_page.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import '../../report/models/report_model.dart';
+import '../../report/viewmodel/report_viewmodel.dart';
 
 class MeetingDetailPage extends StatefulWidget {
   final int meetingId;
@@ -114,6 +116,35 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            if (!isHost && !isEnded)
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                color: Colors.white,
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                onSelected: (value) async {
+                  if (value == 'report') {
+                    await _showMeetingReportBottomSheet(context);
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'report',
+                    child: Center(
+                      child: Text(
+                        '신고하기',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.red700,
                         ),
                       ),
                     ),
@@ -484,6 +515,243 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
       default:
         return category;
     }
+  }
+
+  Future<void> _showMeetingReportBottomSheet(BuildContext context) async {
+    final reasons = ['스팸/광고', '욕설/비방', '부적절한 내용', '사기 의심', '개인정보 노출', '기타'];
+
+    String? selectedReason;
+    final detailController = TextEditingController();
+    final reportViewModel = context.read<ReportViewModel>();
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) {
+        return ChangeNotifierProvider.value(
+          value: reportViewModel,
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              final isEtc = selectedReason == '기타';
+              final reportVm = context.watch<ReportViewModel>();
+              final canSubmit =
+                  selectedReason != null &&
+                  (!isEtc || detailController.text.trim().isNotEmpty) &&
+                  !reportVm.isLoading;
+
+              return Padding(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 10,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 18,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: AppColors.gray300,
+                            borderRadius: BorderRadius.circular(99),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      const Text(
+                        '동행 신고하기',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        '검토가 필요한 이유를 선택해주세요.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.gray500,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      ...reasons.map((reason) {
+                        final selected = selectedReason == reason;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap: reportVm.isLoading
+                                ? null
+                                : () {
+                                    setState(() {
+                                      selectedReason = reason;
+                                    });
+                                  },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 160),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 13,
+                              ),
+                              decoration: BoxDecoration(
+                                color: selected
+                                    ? AppColors.red50
+                                    : AppColors.gray50,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: selected
+                                      ? AppColors.red700
+                                      : AppColors.gray200,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    selected
+                                        ? Icons.radio_button_checked
+                                        : Icons.radio_button_unchecked,
+                                    size: 21,
+                                    color: selected
+                                        ? AppColors.red700
+                                        : AppColors.gray400,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      reason,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: selected
+                                            ? FontWeight.w800
+                                            : FontWeight.w600,
+                                        color: selected
+                                            ? AppColors.red700
+                                            : AppColors.gray600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                      if (isEtc) ...[
+                        const SizedBox(height: 4),
+                        TextField(
+                          controller: detailController,
+                          maxLines: 4,
+                          maxLength: 200,
+                          onChanged: (_) => setState(() {}),
+                          decoration: InputDecoration(
+                            hintText: '신고 내용을 입력해주세요.',
+                            hintStyle: const TextStyle(
+                              color: AppColors.gray400,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            filled: true,
+                            fillColor: AppColors.gray50,
+                            counterStyle: const TextStyle(
+                              color: AppColors.gray400,
+                            ),
+                            contentPadding: const EdgeInsets.all(14),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                color: AppColors.gray200,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                color: AppColors.red700,
+                                width: 1.2,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: canSubmit
+                              ? () async {
+                                  final success = await context
+                                      .read<ReportViewModel>()
+                                      .createReport(
+                                        targetType: ReportTargetType.meeting,
+                                        targetId: widget.meetingId,
+                                        reason: selectedReason!,
+                                        detail: detailController.text,
+                                      );
+
+                                  if (!context.mounted) return;
+
+                                  Navigator.pop(sheetContext);
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        success
+                                            ? '신고가 접수되었습니다.'
+                                            : '신고 접수에 실패했습니다.',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.red700,
+                            disabledBackgroundColor: AppColors.gray200,
+                            foregroundColor: AppColors.white,
+                            disabledForegroundColor: AppColors.gray500,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: reportVm.isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.4,
+                                    color: AppColors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  '신고 제출하기',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    detailController.dispose();
   }
 }
 
