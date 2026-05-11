@@ -76,92 +76,25 @@ class _MyPageState extends State<MyPage> {
     );
   }
 
-  void _openPrivacyPolicy() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.72,
-        minChildSize: 0.42,
-        maxChildSize: 0.88,
-        builder: (context, scrollController) {
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              child: Column(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.gray300,
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.privacy_tip_outlined,
-                        color: AppColors.dark,
-                      ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: Text(
-                          '개인정보처리방침',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.black,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(
-                    child: ListView(
-                      controller: scrollController,
-                      children: const [
-                        _PolicySection(
-                          title: '수집하는 정보',
-                          body:
-                              'TripMate는 소셜 로그인 식별자, 닉네임, 성별, 연령대, 프로필 이미지, 관심 태그, 동행 생성 및 참여 정보, 채팅 이용 정보를 서비스 제공에 필요한 범위에서 처리합니다.',
-                        ),
-                        _PolicySection(
-                          title: '이용 목적',
-                          body:
-                              '계정 식별, 동행 모집 및 참여 조건 확인, 채팅방 제공, 프로필 표시, 서비스 안정성 개선을 위해 개인정보를 이용합니다.',
-                        ),
-                        _PolicySection(
-                          title: '보관 및 삭제',
-                          body:
-                              '회원 탈퇴 시 프로필 정보와 인증 정보는 삭제 또는 비식별 처리되며, 참여 중인 동행과 채팅방 멤버십도 정리됩니다. 법령상 보관이 필요한 정보는 정해진 기간 동안 분리 보관될 수 있습니다.',
-                        ),
-                        _PolicySection(
-                          title: '문의',
-                          body:
-                              '개인정보 관련 문의나 정정, 삭제 요청은 서비스 운영자에게 요청할 수 있습니다. 정식 배포 시 최신 개인정보처리방침 문서로 연결될 예정입니다.',
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+  static final Uri _privacyPolicyUrl = Uri.parse(
+    'https://quiet-lifter-473.notion.site/35d12450961b8044889cca42bc32a35d',
+  );
+
+  Future<void> _openPrivacyPolicy() async {
+    final launched = await launchUrl(
+      _privacyPolicyUrl,
+      mode: LaunchMode.externalApplication,
     );
+
+    if (!launched && mounted) {
+      showDialog(
+        context: context,
+        builder: (_) => const CustomMessageDialog(
+          title: '개인정보처리방침을 열 수 없어요.',
+          message: '잠시 후 다시 시도해주세요.',
+        ),
+      );
+    }
   }
 
   void _confirmLogout() {
@@ -574,43 +507,6 @@ class _MyPageState extends State<MyPage> {
         ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 2),
-    );
-  }
-}
-
-class _PolicySection extends StatelessWidget {
-  final String title;
-  final String body;
-
-  const _PolicySection({required this.title, required this.body});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            body,
-            style: const TextStyle(
-              fontSize: 14,
-              height: 1.55,
-              fontWeight: FontWeight.w500,
-              color: AppColors.gray600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
