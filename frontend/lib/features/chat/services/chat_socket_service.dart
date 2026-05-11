@@ -82,12 +82,10 @@ class ChatSocketService {
       if (!_isJoined && !joinCompleter.isCompleted) {
         joinCompleter.completeError(Exception(message));
       }
-      debugPrint('SOCKET error message=$message');
       onError(message);
     });
 
     _socket!.onConnectError((data) {
-      debugPrint('SOCKET connect_error data=$data');
       const message = '채팅 서버 연결에 실패했습니다.';
       if (!joinCompleter.isCompleted) {
         joinCompleter.completeError(Exception(message));
@@ -110,10 +108,6 @@ class ChatSocketService {
       return false;
     }
 
-    debugPrint(
-      'SOCKET emit send_message meetingId=$meetingId content=$content isReady=$isReady',
-    );
-
     _socket?.emit('send_message', {'meetingId': meetingId, 'content': content});
     return true;
   }
@@ -122,10 +116,6 @@ class ChatSocketService {
     if (!isReady) {
       return false;
     }
-
-    debugPrint(
-      'SOCKET emit read_messages meetingId=$meetingId lastReadMessageId=$lastReadMessageId',
-    );
 
     _socket?.emit('read_messages', {
       'meetingId': meetingId,
