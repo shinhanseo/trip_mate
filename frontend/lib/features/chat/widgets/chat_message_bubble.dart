@@ -48,15 +48,24 @@ class ChatMessageBubble extends StatelessWidget {
     );
 
     final profile = showProfileImageAndNickname
-        ? CircleAvatar(
-            radius: 18,
-            backgroundColor: AppColors.gray200,
-            backgroundImage: message.senderProfileImageUrl == null
-                ? null
-                : NetworkImage(message.senderProfileImageUrl!),
-            child: message.senderProfileImageUrl == null
-                ? const Icon(Icons.person, size: 20, color: AppColors.gray600)
-                : null,
+        ? GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/userprofile',
+                arguments: message.senderId,
+              );
+            },
+            child: CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.gray200,
+              backgroundImage: message.senderProfileImageUrl == null
+                  ? null
+                  : NetworkImage(message.senderProfileImageUrl!),
+              child: message.senderProfileImageUrl == null
+                  ? const Icon(Icons.person, size: 20, color: AppColors.gray600)
+                  : null,
+            ),
           )
         : const SizedBox(width: 36);
 
