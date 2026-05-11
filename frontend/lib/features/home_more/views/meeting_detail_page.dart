@@ -365,13 +365,19 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                                 cancelText: '취소',
                                 confirmText: '삭제하기',
                                 onConfirm: () async {
+                                  final navigator = Navigator.of(context);
+
                                   try {
                                     await context
                                         .read<MeetingDetailViewModel>()
                                         .deleteMeeting(detail.id);
 
                                     if (!context.mounted) return;
-                                    Navigator.pop(context, true);
+
+                                    navigator.pushNamedAndRemoveUntil(
+                                      '/home',
+                                      (route) => false,
+                                    );
                                   } catch (e) {
                                     if (!context.mounted) return;
 
