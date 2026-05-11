@@ -243,7 +243,7 @@ class _HomePageState extends State<HomePage> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               const Text(
-                                                '오늘의 제주 날씨',
+                                                '현재 제주 날씨',
                                                 style: TextStyle(
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.w700,
