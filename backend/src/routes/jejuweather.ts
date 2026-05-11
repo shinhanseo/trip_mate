@@ -64,7 +64,6 @@ router.get("/", async (_req, res: Response) => {
       item: buildWeatherDto(response.data),
     });
   } catch (err: any) {
-    console.error("GET /weather error:", err);
 
     return fail(res, 500, "날씨 API 호출 실패");
   }

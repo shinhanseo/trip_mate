@@ -78,8 +78,6 @@ export function setupChatSocket(server: http.Server) {
     socket.on("join_room", async (payload: JoinRoomPayload) => {
       const meetingId = Number(payload?.meetingId);
 
-      console.log("join_room", { userId, meetingId });
-
       if (!Number.isInteger(meetingId) || meetingId <= 0) {
         socket.emit("socket_error", {
           message: "invalid meeting id",
@@ -181,8 +179,6 @@ export function setupChatSocket(server: http.Server) {
 
         await socket.join(roomName);
 
-        console.log("joined_room_done", { userId, roomName });
-
         socket.emit("joined_room", {
           meetingId,
           roomName,
@@ -194,7 +190,6 @@ export function setupChatSocket(server: http.Server) {
       } catch (error) {
         await client.query("rollback");
 
-        console.error("join_room error:", error);
 
         socket.emit("socket_error", {
           message: "failed to join room",
@@ -209,8 +204,6 @@ export function setupChatSocket(server: http.Server) {
       const meetingId = Number(payload?.meetingId);
       const content =
         typeof payload?.content === "string" ? payload.content.trim() : "";
-
-      console.log("send_message_received", { userId, meetingId, content });
 
       if (!Number.isInteger(meetingId) || meetingId <= 0) {
         socket.emit("socket_error", {
@@ -309,8 +302,6 @@ export function setupChatSocket(server: http.Server) {
         const message = insertRes.rows[0];
         const roomName = getRoomName(meetingId);
 
-        console.log("message_inserted", { messageId: message.id, roomId });
-
         const newMessage: NewMessagePayload = {
           id: Number(message.id),
           roomId: Number(message.room_id),
@@ -326,12 +317,10 @@ export function setupChatSocket(server: http.Server) {
           unreadCount: Number(unreadCountRes.rows[0]?.unread_count ?? 0),
         };
 
-        console.log("emit_new_message", { roomName, messageId: message.id });
         io.to(roomName).emit("new_message", newMessage);
 
       } catch (error) {
         await client.query("rollback");
-        console.error("send_message error:", error);
         socket.emit("socket_error", {
           message: "failed to send message",
         } satisfies SocketErrorPayload);
@@ -429,7 +418,6 @@ export function setupChatSocket(server: http.Server) {
         }
       } catch (error) {
         await client.query("rollback");
-        console.error("read_messages error:", error);
         socket.emit("socket_error", {
           message: "failed to mark messages as read",
         } satisfies SocketErrorPayload);
@@ -439,7 +427,6 @@ export function setupChatSocket(server: http.Server) {
     });
 
     socket.on("disconnect", () => {
-      console.log("socket disconnected:", socket.id, "userId:", userId);
     });
 
   });

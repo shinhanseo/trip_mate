@@ -123,7 +123,6 @@ router.get(
         },
       });
     } catch (error: any) {
-      console.error("GET /chat/meetings/:meetingId/messages error:", error);
       return fail(res, 500, "failed to load chat messages");
     } finally {
       client.release();
