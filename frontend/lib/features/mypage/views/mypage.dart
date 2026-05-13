@@ -317,7 +317,14 @@ class _MyPageState extends State<MyPage> {
         surfaceTintColor: AppColors.white,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        title: const Text('마이페이지'),
+        title: const Text(
+          '마이페이지',
+          style: TextStyle(
+            fontSize: 25,
+            color: AppColors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
