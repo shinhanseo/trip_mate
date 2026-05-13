@@ -54,6 +54,10 @@ import '../features/meeting_create/viewmodels/meeting_update_viewmodel.dart';
 import '../features/report/viewmodel/report_viewmodel.dart';
 import '../features/report/services/report_api.dart';
 
+import '../features/notification/services/notification_api.dart';
+import '../features/notification/viewmodels/notification_viewmodel.dart';
+import '../features/notification/view/notification_view.dart';
+
 class AppRouter {
   static const String root = '/';
   static const String home = '/home';
@@ -72,6 +76,7 @@ class AppRouter {
   static const String userprofile = '/userprofile';
   static const String totalmeetingmap = '/totalmeetingmap';
   static const String chatdetail = '/chatdetail';
+  static const String notification = '/notification';
 
   static final baseUrl = dotenv.env['BASE_URL']!;
 
@@ -101,6 +106,16 @@ class AppRouter {
               ChangeNotifierProvider(
                 create: (_) => RegionSummaryViewModel(
                   regionSummaryApi: HomeRegionSummaryApi(baseUrl: baseUrl),
+                ),
+              ),
+
+              ChangeNotifierProvider(
+                create: (_) => NotificationViewModel(
+                  notificationApi: NotificationApi(
+                    baseUrl: baseUrl,
+                    authApi: AuthApi(baseUrl: baseUrl),
+                    tokenStorage: TokenStorage(),
+                  ),
                 ),
               ),
             ],
@@ -170,14 +185,27 @@ class AppRouter {
 
       case mypage:
         return MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider(
-            create: (_) => MyPageViewModel(
-              myPageApi: MyPageApi(
-                baseUrl: baseUrl,
-                authApi: AuthApi(baseUrl: baseUrl),
-                tokenStorage: TokenStorage(),
+          builder: (_) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                create: (_) => MyPageViewModel(
+                  myPageApi: MyPageApi(
+                    baseUrl: baseUrl,
+                    authApi: AuthApi(baseUrl: baseUrl),
+                    tokenStorage: TokenStorage(),
+                  ),
+                ),
               ),
-            ),
+              ChangeNotifierProvider(
+                create: (_) => NotificationViewModel(
+                  notificationApi: NotificationApi(
+                    baseUrl: baseUrl,
+                    authApi: AuthApi(baseUrl: baseUrl),
+                    tokenStorage: TokenStorage(),
+                  ),
+                ),
+              ),
+            ],
             child: const MyPage(),
           ),
           settings: settings,
@@ -185,14 +213,27 @@ class AppRouter {
 
       case homemore:
         return MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider(
-            create: (_) => HomeMoreViewModel(
-              meetingApi: MeetingApi(
-                baseUrl: baseUrl,
-                authApi: AuthApi(baseUrl: baseUrl),
-                tokenStorage: TokenStorage(),
+          builder: (_) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider(
+                create: (_) => HomeMoreViewModel(
+                  meetingApi: MeetingApi(
+                    baseUrl: baseUrl,
+                    authApi: AuthApi(baseUrl: baseUrl),
+                    tokenStorage: TokenStorage(),
+                  ),
+                ),
               ),
-            ),
+              ChangeNotifierProvider(
+                create: (_) => NotificationViewModel(
+                  notificationApi: NotificationApi(
+                    baseUrl: baseUrl,
+                    authApi: AuthApi(baseUrl: baseUrl),
+                    tokenStorage: TokenStorage(),
+                  ),
+                ),
+              ),
+            ],
             child: const HomeMorePage(),
           ),
           settings: settings,
@@ -347,6 +388,21 @@ class AppRouter {
               ),
             ),
             child: const TotalMeetingMapView(),
+          ),
+          settings: settings,
+        );
+
+      case notification:
+        return MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => NotificationViewModel(
+              notificationApi: NotificationApi(
+                baseUrl: baseUrl,
+                authApi: AuthApi(baseUrl: baseUrl),
+                tokenStorage: TokenStorage(),
+              ),
+            ),
+            child: const NotificationPage(),
           ),
           settings: settings,
         );
