@@ -21,6 +21,28 @@ class NotificationModel {
 
   bool get isRead => readAt != null;
 
+  NotificationModel copyWith({
+    int? id,
+    String? type,
+    String? title,
+    String? body,
+    String? targetType,
+    int? targetId,
+    DateTime? readAt,
+    DateTime? createdAt,
+  }) {
+    return NotificationModel(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      targetType: targetType ?? this.targetType,
+      targetId: targetId ?? this.targetId,
+      readAt: readAt ?? this.readAt,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
       id: int.parse(json['id'].toString()),
