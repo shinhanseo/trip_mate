@@ -19,11 +19,11 @@ class NotificationApi {
   Future<List<NotificationModel>> getNotifications({int limit = 50}) async {
     final url = Uri.parse('$baseUrl/api/notifications?limit=$limit');
 
-    final http.Response response = await _authorizedGet(url);
+    final response = await _authorizedRequest(method: 'GET', url: url);
 
-    final Map<String, dynamic> json = jsonDecode(response.body);
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (_isSuccess(response)) {
       final items = json['data']['items'] as List<dynamic>;
 
       return items
@@ -39,11 +39,11 @@ class NotificationApi {
   Future<int> getUnreadCount() async {
     final url = Uri.parse('$baseUrl/api/notifications/unread-count');
 
-    final http.Response response = await _authorizedGet(url);
+    final response = await _authorizedRequest(method: 'GET', url: url);
 
-    final Map<String, dynamic> json = jsonDecode(response.body);
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (_isSuccess(response)) {
       return int.parse(json['data']['count'].toString());
     }
 
@@ -53,71 +53,35 @@ class NotificationApi {
   Future<void> markAsRead(int notificationId) async {
     final url = Uri.parse('$baseUrl/api/notifications/$notificationId/read');
 
-    final http.Response response = await _authorizedPatch(url);
+    final response = await _authorizedRequest(method: 'PATCH', url: url);
 
-    final Map<String, dynamic> json = jsonDecode(response.body);
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return;
-    }
+    if (_isSuccess(response)) return;
 
     throw Exception(json['message'] ?? '알림을 읽음 처리하지 못했습니다.');
   }
 
-  Future<http.Response> _authorizedPatch(Uri url, {Object? body}) async {
-    String? accessToken = await tokenStorage.getAccessToken();
+  Future<void> markAllAsRead() async {
+    final url = Uri.parse('$baseUrl/api/notifications/read-all');
 
-    http.Response response = await http.patch(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
-      body: body,
-    );
+    final response = await _authorizedRequest(method: 'PATCH', url: url);
 
-    if (response.statusCode != 401) {
-      return response;
-    }
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
 
-    final refreshToken = await tokenStorage.getRefreshToken();
+    if (_isSuccess(response)) return;
 
-    if (refreshToken == null || refreshToken.isEmpty) {
-      throw Exception('로그인이 만료되었습니다.');
-    }
-
-    final tokenResponse = await authApi.updateAccessToken(
-      refreshToken: refreshToken,
-    );
-
-    final newAccessToken = tokenResponse['access_token'] as String;
-    final newRefreshToken = tokenResponse['refresh_token'] as String;
-
-    await tokenStorage.saveAccessToken(newAccessToken);
-    await tokenStorage.saveRefreshToken(newRefreshToken);
-
-    response = await http.patch(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $newAccessToken',
-      },
-      body: body,
-    );
-
-    return response;
+    throw Exception(json['message'] ?? '알림을 모두 읽음 처리하지 못했습니다.');
   }
 
   Future<void> deleteNotification(int notificationId) async {
     final url = Uri.parse('$baseUrl/api/notifications/$notificationId');
 
-    final http.Response response = await _authorizedDelete(url);
+    final response = await _authorizedRequest(method: 'DELETE', url: url);
 
-    final Map<String, dynamic> json = jsonDecode(response.body);
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return;
-    }
+    if (_isSuccess(response)) return;
 
     throw Exception(json['message'] ?? '알림을 삭제하지 못했습니다.');
   }
@@ -125,30 +89,35 @@ class NotificationApi {
   Future<void> deleteAllNotifications() async {
     final url = Uri.parse('$baseUrl/api/notifications');
 
-    final http.Response response = await _authorizedDelete(url);
+    final response = await _authorizedRequest(method: 'DELETE', url: url);
 
-    final Map<String, dynamic> json = jsonDecode(response.body);
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return;
-    }
+    if (_isSuccess(response)) return;
 
     throw Exception(json['message'] ?? '알림을 모두 삭제하지 못했습니다.');
   }
 
-  Future<http.Response> _authorizedDelete(Uri url) async {
-    String? accessToken = await tokenStorage.getAccessToken();
+  bool _isSuccess(http.Response response) {
+    return response.statusCode >= 200 && response.statusCode < 300;
+  }
+
+  Future<http.Response> _authorizedRequest({
+    required String method,
+    required Uri url,
+    Object? body,
+  }) async {
+    final accessToken = await tokenStorage.getAccessToken();
 
     if (accessToken == null || accessToken.isEmpty) {
       throw Exception('로그인이 필요합니다.');
     }
 
-    http.Response response = await http.delete(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
+    var response = await _sendRequest(
+      method: method,
+      url: url,
+      accessToken: accessToken,
+      body: body,
     );
 
     if (response.statusCode != 401) {
@@ -171,56 +140,36 @@ class NotificationApi {
     await tokenStorage.saveAccessToken(newAccessToken);
     await tokenStorage.saveRefreshToken(newRefreshToken);
 
-    response = await http.delete(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $newAccessToken',
-      },
+    response = await _sendRequest(
+      method: method,
+      url: url,
+      accessToken: newAccessToken,
+      body: body,
     );
 
     return response;
   }
 
-  Future<http.Response> _authorizedGet(Uri url) async {
-    String? accessToken = await tokenStorage.getAccessToken();
+  Future<http.Response> _sendRequest({
+    required String method,
+    required Uri url,
+    required String accessToken,
+    Object? body,
+  }) {
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    };
 
-    http.Response response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
-
-    if (response.statusCode != 401) {
-      return response;
+    switch (method) {
+      case 'GET':
+        return http.get(url, headers: headers);
+      case 'PATCH':
+        return http.patch(url, headers: headers, body: body);
+      case 'DELETE':
+        return http.delete(url, headers: headers);
+      default:
+        throw UnsupportedError('Unsupported method: $method');
     }
-
-    final refreshToken = await tokenStorage.getRefreshToken();
-
-    if (refreshToken == null || refreshToken.isEmpty) {
-      throw Exception('로그인이 만료되었습니다.');
-    }
-
-    final tokenResponse = await authApi.updateAccessToken(
-      refreshToken: refreshToken,
-    );
-
-    final newAccessToken = tokenResponse['access_token'] as String;
-    final newRefreshToken = tokenResponse['refresh_token'] as String;
-
-    await tokenStorage.saveAccessToken(newAccessToken);
-    await tokenStorage.saveRefreshToken(newRefreshToken);
-
-    response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $newAccessToken',
-      },
-    );
-
-    return response;
   }
 }
