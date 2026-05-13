@@ -6,6 +6,8 @@ import 'package:frontend/features/meeting_shared/widgets/meeting_filter_bottom_s
 import 'package:provider/provider.dart';
 import 'package:frontend/core/widgets/bottom_nav_bar.dart';
 
+import '../../notification/viewmodels/notification_viewmodel.dart';
+import '../../notification/widgets/notification_icon_button.dart';
 import '../viewmodels/home_more_viewmodel.dart';
 import '../widgets/meeting_card.dart';
 
@@ -25,6 +27,7 @@ class _HomeMorePageState extends State<HomeMorePage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeMoreViewModel>().loadMeeting();
+      context.read<NotificationViewModel>().loadUnreadCount();
     });
   }
 
@@ -89,6 +92,7 @@ class _HomeMorePageState extends State<HomeMorePage> {
             color: Colors.black,
           ),
         ),
+        actions: const [NotificationIconButton(), SizedBox(width: 8)],
       ),
       body: SafeArea(
         child: Padding(

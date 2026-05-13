@@ -6,6 +6,8 @@ import 'package:frontend/core/widgets/gradient_button.dart';
 
 import '../viewmodels/weather_viewmodel.dart';
 import '../viewmodels/region_summary_viewmodel.dart';
+import '../../notification/viewmodels/notification_viewmodel.dart';
+import '../../notification/widgets/notification_icon_button.dart';
 import '../widgets/weather_meta_item.dart';
 import '../widgets/jeju_map_card.dart';
 
@@ -24,6 +26,7 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WeatherViewModel>().loadWeather();
       context.read<RegionSummaryViewModel>().loadRegionSummary();
+      context.read<NotificationViewModel>().loadUnreadCount();
     });
   }
 
@@ -82,13 +85,20 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '모행',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.brandTeal,
-                        ),
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              '모행',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.brandTeal,
+                              ),
+                            ),
+                          ),
+                          const NotificationIconButton(),
+                        ],
                       ),
                       const SizedBox(height: 16),
                       const Text(
@@ -260,9 +270,9 @@ class _HomePageState extends State<HomePage> {
                                                     fit: BoxFit.contain,
                                                     errorBuilder:
                                                         (
-                                                          _,
-                                                          __,
-                                                          ___,
+                                                          context,
+                                                          error,
+                                                          stackTrace,
                                                         ) => const Icon(
                                                           Icons.cloud_outlined,
                                                           size: 32,

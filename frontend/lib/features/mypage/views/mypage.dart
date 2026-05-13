@@ -7,6 +7,8 @@ import '../viewmodels/mypage_viewmodel.dart';
 import '../viewmodels/my_meeting_viewmodel.dart';
 import '../widgets/profile_summary.dart';
 import '../../auth/viewmodels/auth_state.dart';
+import '../../notification/viewmodels/notification_viewmodel.dart';
+import '../../notification/widgets/notification_icon_button.dart';
 import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/custom_message_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -25,6 +27,7 @@ class _MyPageState extends State<MyPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MyPageViewModel>().getMe();
+      context.read<NotificationViewModel>().loadUnreadCount();
     });
   }
 
@@ -326,6 +329,7 @@ class _MyPageState extends State<MyPage> {
           ),
         ),
         automaticallyImplyLeading: false,
+        actions: const [NotificationIconButton(), SizedBox(width: 8)],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
