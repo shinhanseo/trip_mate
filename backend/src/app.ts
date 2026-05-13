@@ -11,6 +11,7 @@ import userRouter from "./routes/user";
 import uploadRouter from "./routes/upload";
 import chatRouter from "./routes/chat";
 import reportRouter from "./routes/report";
+import notificationRouter from "./routes/notifications";
 import { setupChatSocket } from "./socket/chatSocket";
 
 const app = express();
@@ -41,6 +42,7 @@ app.use("/api/user", userRouter);
 app.use("/api/upload", uploadRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/report", reportRouter);
+app.use("/api/notifications", notificationRouter);
 
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
