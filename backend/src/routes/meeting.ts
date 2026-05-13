@@ -2,6 +2,7 @@ import { Router, Response } from "express";
 import { pool } from "../db";
 import { authRequired, AuthRequest } from "../middleware/authRequired";
 import { isValidAgeGroups, isValidCategory, isValidGender, isValidAgeGroup, isValidRegion } from "../modules/meetings/meetings-invalid";
+import { createNotification } from "../modules/notifications/notifications-helper";
 import { meetingMapper } from "../modules/meetings/meetings-mapper";
 import { ok, fail } from "../utils/response";
 import { getJejuRegionInfo } from "../modules/place/place-helper";
@@ -830,7 +831,7 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
 
     const meetingRes = await client.query(
       `
-      select id, max_members, status, gender, age_groups
+      select id, host_user_id, title, max_members, status, gender, age_groups
       from meetings
       where id = $1
       for update
@@ -852,7 +853,7 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
 
     const profileRes = await client.query(
       `
-      select gender, age_range
+      select nickname, gender, age_range
       from user_profiles
       where user_id = $1
       `,
@@ -994,6 +995,17 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
       [roomId, userId]
     );
 
+    const nickname = profile.nickname ?? '알 수 없는 사용자';
+
+    await createNotification(client, {
+      userId: Number(meeting.host_user_id),
+      type: 'meeting_joined',
+      title: '새 동행자가 참여했어요',
+      body: `${nickname}님이 "${meeting.title}" 동행에 참여했어요.`,
+      targetType: 'meeting',
+      targetId: meetingId,
+    });
+
     await client.query("commit");
 
     return ok(
@@ -1055,7 +1067,7 @@ router.post("/:id/leave", authRequired, async (req: AuthRequest, res: Response) 
 
     const meetingRes = await client.query(
       `
-      select id, max_members, status
+      select id, host_user_id, title, max_members, status
       from meetings
       where id = $1
       for update
@@ -1123,6 +1135,27 @@ router.post("/:id/leave", authRequired, async (req: AuthRequest, res: Response) 
         [meetingId]
       );
     }
+
+    const profileRes = await client.query(
+      `
+      select nickname
+      from user_profiles
+      where user_id = $1
+      `,
+      [userId]
+    );
+
+    const nickname = profileRes.rows[0]?.nickname ?? '알 수 없는 사용자';
+    const meeting = meetingRes.rows[0];
+
+    await createNotification(client, {
+      userId: Number(meeting.host_user_id),
+      type: 'meeting_left',
+      title: '동행자가 나갔어요',
+      body: `${nickname}님이 "${meeting.title}" 동행에서 나갔어요.`,
+      targetType: 'meeting',
+      targetId: meetingId,
+    });
 
     await client.query("commit");
 
