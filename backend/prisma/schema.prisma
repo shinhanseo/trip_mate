@@ -23,6 +23,7 @@ model User {
   chatRoomMembers  ChatRoomMember[]
   sentChatMessages ChatMessage[]    @relation("ChatMessageSender")
   submittedReports Report[]         @relation("ReportReporter")
+  notifications    Notification[]
 
   @@map("users")
 }
@@ -153,6 +154,7 @@ model ChatRoomMember {
   joinedAt          DateTime  @default(now()) @map("joined_at") @db.Timestamptz(6)
   lastReadMessageId BigInt?   @map("last_read_message_id")
   lastReadAt        DateTime? @map("last_read_at") @db.Timestamptz(6)
+  joinNoticeSent    Boolean   @default(false) @map("join_notice_sent")
 
   room            ChatRoom     @relation(fields: [roomId], references: [id], onDelete: Cascade)
   user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -167,13 +169,14 @@ model ChatRoomMember {
 model ChatMessage {
   id        BigInt   @id @default(autoincrement())
   roomId    BigInt   @map("room_id")
-  senderId  BigInt   @map("sender_id")
+  senderId  BigInt?  @map("sender_id")
+  messageType String @default("text") @map("message_type")
   content   String
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
 
   room              ChatRoom         @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  sender            User             @relation("ChatMessageSender", fields: [senderId], references: [id], onDelete: Restrict)
+  sender            User?            @relation("ChatMessageSender", fields: [senderId], references: [id], onDelete: Restrict)
   lastReadByMembers ChatRoomMember[] @relation("ChatRoomMemberLastReadMessage")
 
   @@index([roomId, createdAt], map: "chat_messages_room_id_created_at_idx")
@@ -198,4 +201,23 @@ model Report {
   @@index([targetType, targetId], map: "reports_target_type_target_id_idx")
   @@index([status, createdAt], map: "reports_status_created_at_idx")
   @@map("reports")
+}
+
+model Notification {
+  id         BigInt    @id @default(autoincrement())
+  userId     BigInt    @map("user_id")
+  type       String    @db.VarChar(40)
+  title      String    @db.VarChar(100)
+  body       String
+  targetType String?   @map("target_type") @db.VarChar(30)
+  targetId   BigInt?   @map("target_id")
+  readAt     DateTime? @map("read_at") @db.Timestamptz(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deletedAt, createdAt], map: "notifications_user_deleted_created_idx")
+  @@index([userId, readAt], map: "notifications_user_read_idx")
+  @@map("notifications")
 }
