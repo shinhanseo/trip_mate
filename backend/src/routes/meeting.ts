@@ -646,6 +646,33 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res: Response) => {
       [meetingId]
     );
 
+    await client.query(
+      `
+      insert into notifications (
+        user_id,
+        type,
+        title,
+        body,
+        target_type,
+        target_id
+      )
+      select
+        mm.user_id,
+        'meeting_updated',
+        '동행 정보가 수정됐어요',
+        '"' || m.title || '" 동행 정보가 수정됐어요.',
+        'meeting',
+        m.id
+      from meeting_members mm
+      join meetings m
+        on m.id = mm.meeting_id
+      where mm.meeting_id = $1
+        and mm.status = 'joined'
+        and mm.role <> 'host'
+      `,
+      [meetingId]
+    );
+
     await client.query("commit");
 
     return ok(res, {
