@@ -174,19 +174,6 @@ class _UserProfileViewState extends State<UserProfileView> {
   }
 
   Future<void> _showUserReportBottomSheet(BuildContext context) async {
-    final reasons = [
-      '부적절한 프로필 정보',
-      '욕설 또는 비방',
-      '괴롭힘 또는 위협',
-      '사칭 계정 의심',
-      '스팸 또는 광고',
-      '사기 또는 금전 요구',
-      '기타',
-    ];
-
-    String? selectedReason;
-    bool isSubmitting = false;
-    final detailController = TextEditingController();
     final reportViewModel = context.read<ReportViewModel>();
 
     await showModalBottomSheet(
@@ -197,228 +184,248 @@ class _UserProfileViewState extends State<UserProfileView> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (sheetContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            final isEtc = selectedReason == '기타';
-            final canSubmit =
-                selectedReason != null &&
-                (!isEtc || detailController.text.trim().isNotEmpty) &&
-                !isSubmitting;
+      builder: (sheetContext) => _UserReportBottomSheet(
+        targetUserId: widget.userId,
+        reportViewModel: reportViewModel,
+      ),
+    );
+  }
+}
 
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 10,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 18,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 44,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: AppColors.gray300,
-                          borderRadius: BorderRadius.circular(99),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-                    const Text(
-                      '유저 신고하기',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      '검토가 필요한 이유를 선택해주세요.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.gray500,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    ...reasons.map((reason) {
-                      final selected = selectedReason == reason;
+class _UserReportBottomSheet extends StatefulWidget {
+  const _UserReportBottomSheet({
+    required this.targetUserId,
+    required this.reportViewModel,
+  });
 
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(14),
-                          onTap: isSubmitting
-                              ? null
-                              : () {
-                                  setState(() {
-                                    selectedReason = reason;
-                                  });
-                                },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 160),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 13,
-                            ),
-                            decoration: BoxDecoration(
-                              color: selected
-                                  ? AppColors.red50
-                                  : AppColors.gray50,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: selected
-                                    ? AppColors.red700
-                                    : AppColors.gray200,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  selected
-                                      ? Icons.radio_button_checked
-                                      : Icons.radio_button_unchecked,
-                                  size: 21,
-                                  color: selected
-                                      ? AppColors.red700
-                                      : AppColors.gray400,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    reason,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: selected
-                                          ? FontWeight.w800
-                                          : FontWeight.w600,
-                                      color: selected
-                                          ? AppColors.red700
-                                          : AppColors.gray600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                    if (isEtc) ...[
-                      const SizedBox(height: 4),
-                      TextField(
-                        controller: detailController,
-                        maxLines: 4,
-                        maxLength: 200,
-                        onChanged: (_) => setState(() {}),
-                        decoration: InputDecoration(
-                          hintText: '신고 내용을 입력해주세요.',
-                          hintStyle: const TextStyle(
-                            color: AppColors.gray400,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          filled: true,
-                          fillColor: AppColors.gray50,
-                          counterStyle: const TextStyle(
-                            color: AppColors.gray400,
-                          ),
-                          contentPadding: const EdgeInsets.all(14),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: AppColors.gray200,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: AppColors.red700,
-                              width: 1.2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: canSubmit
-                            ? () async {
-                                setState(() {
-                                  isSubmitting = true;
-                                });
+  final int targetUserId;
+  final ReportViewModel reportViewModel;
 
-                                final success = await reportViewModel
-                                    .createReport(
-                                      targetType: ReportTargetType.user,
-                                      targetId: widget.userId,
-                                      reason: selectedReason!,
-                                      detail: detailController.text,
-                                    );
+  @override
+  State<_UserReportBottomSheet> createState() => _UserReportBottomSheetState();
+}
 
-                                if (!context.mounted) return;
+class _UserReportBottomSheetState extends State<_UserReportBottomSheet> {
+  final TextEditingController _detailController = TextEditingController();
+  final List<String> _reasons = const [
+    '부적절한 프로필 정보',
+    '욕설 또는 비방',
+    '괴롭힘 또는 위협',
+    '사칭 계정 의심',
+    '스팸 또는 광고',
+    '사기 또는 금전 요구',
+    '기타',
+  ];
 
-                                setState(() {
-                                  isSubmitting = false;
-                                });
+  String? _selectedReason;
+  bool _isSubmitting = false;
 
-                                Navigator.pop(sheetContext);
+  @override
+  void dispose() {
+    _detailController.dispose();
+    super.dispose();
+  }
 
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      success
-                                          ? '신고가 접수되었습니다.'
-                                          : '신고 접수에 실패했습니다.',
-                                    ),
-                                  ),
-                                );
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.red700,
-                          disabledBackgroundColor: AppColors.gray200,
-                          foregroundColor: AppColors.white,
-                          disabledForegroundColor: AppColors.gray500,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: isSubmitting
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.4,
-                                  color: AppColors.white,
-                                ),
-                              )
-                            : const Text(
-                                '신고 제출하기',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
+  Future<void> _submit() async {
+    final selectedReason = _selectedReason;
+    if (selectedReason == null || _isSubmitting) return;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    final success = await widget.reportViewModel.createReport(
+      targetType: ReportTargetType.user,
+      targetId: widget.targetUserId,
+      reason: selectedReason,
+      detail: _detailController.text,
     );
 
-    detailController.dispose();
+    if (!mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.pop(context);
+
+    messenger.showSnackBar(
+      SnackBar(content: Text(success ? '신고가 접수되었습니다.' : '신고 접수에 실패했습니다.')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEtc = _selectedReason == '기타';
+    final canSubmit =
+        _selectedReason != null &&
+        (!isEtc || _detailController.text.trim().isNotEmpty) &&
+        !_isSubmitting;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 10,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 18,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.gray300,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            const SizedBox(height: 22),
+            const Text(
+              '유저 신고하기',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              '검토가 필요한 이유를 선택해주세요.',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.gray500,
+              ),
+            ),
+            const SizedBox(height: 18),
+            ..._reasons.map((reason) {
+              final selected = _selectedReason == reason;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: _isSubmitting
+                      ? null
+                      : () {
+                          setState(() {
+                            _selectedReason = reason;
+                          });
+                        },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 13,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected ? AppColors.red50 : AppColors.gray50,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: selected ? AppColors.red700 : AppColors.gray200,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          selected
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          size: 21,
+                          color: selected
+                              ? AppColors.red700
+                              : AppColors.gray400,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            reason,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: selected
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              color: selected
+                                  ? AppColors.red700
+                                  : AppColors.gray600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+            if (isEtc) ...[
+              const SizedBox(height: 4),
+              TextField(
+                controller: _detailController,
+                maxLines: 4,
+                maxLength: 200,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: '신고 내용을 입력해주세요.',
+                  hintStyle: const TextStyle(
+                    color: AppColors.gray400,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.gray50,
+                  counterStyle: const TextStyle(color: AppColors.gray400),
+                  contentPadding: const EdgeInsets.all(14),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: AppColors.gray200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(
+                      color: AppColors.red700,
+                      width: 1.2,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: canSubmit ? _submit : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.red700,
+                  disabledBackgroundColor: AppColors.gray200,
+                  foregroundColor: AppColors.white,
+                  disabledForegroundColor: AppColors.gray500,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.4,
+                          color: AppColors.white,
+                        ),
+                      )
+                    : const Text(
+                        '신고 제출하기',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
