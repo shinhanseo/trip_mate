@@ -113,39 +113,55 @@ class _NotificationPageState extends State<NotificationPage> {
                         .deleteNotification(notification.id);
                     return true;
                   },
-                  child: ListTile(
-                    title: Text(
-                      notification.title,
-                      style: TextStyle(
-                        fontWeight: notification.isRead
-                            ? FontWeight.w600
-                            : FontWeight.w800,
-                      ),
-                    ),
-                    subtitle: Text(notification.body),
-                    trailing: notification.isRead
-                        ? null
-                        : const Icon(
-                            Icons.circle,
-                            size: 8,
-                            color: AppColors.brandTeal,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 8,
+                        ),
+                        title: Text(
+                          notification.title,
+                          style: TextStyle(
+                            fontWeight: notification.isRead
+                                ? FontWeight.w600
+                                : FontWeight.w800,
                           ),
-                    onTap: () async {
-                      await context.read<NotificationViewModel>().markAsRead(
-                        notification,
-                      );
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(notification.body),
+                        ),
+                        trailing: notification.isRead
+                            ? null
+                            : const Icon(
+                                Icons.circle,
+                                size: 8,
+                                color: AppColors.brandTeal,
+                              ),
+                        onTap: () async {
+                          await context
+                              .read<NotificationViewModel>()
+                              .markAsRead(notification);
 
-                      if (!context.mounted) return;
+                          if (!context.mounted) return;
 
-                      if (notification.targetType == 'meeting' &&
-                          notification.targetId != null) {
-                        Navigator.pushNamed(
-                          context,
-                          '/meetingdetail',
-                          arguments: notification.targetId,
-                        );
-                      }
-                    },
+                          if (notification.targetType == 'meeting' &&
+                              notification.targetId != null) {
+                            Navigator.pushNamed(
+                              context,
+                              '/meetingdetail',
+                              arguments: notification.targetId,
+                            );
+                          }
+                        },
+                      ),
+                      const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: AppColors.gray200,
+                      ),
+                    ],
                   ),
                 );
               },
