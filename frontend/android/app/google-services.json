@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "343257143694",
+    "project_id": "tripmate-b953d",
+    "storage_bucket": "tripmate-b953d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:343257143694:android:0b5ac98c0ba1f85b086cdf",
+        "android_client_info": {
+          "package_name": "com.hanseo.mohaeng"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3b5NiCMzcN3ijpEE6GuWa_0P-w71S_wE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
