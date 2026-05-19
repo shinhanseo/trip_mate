@@ -24,6 +24,7 @@ model User {
   sentChatMessages ChatMessage[]    @relation("ChatMessageSender")
   submittedReports Report[]         @relation("ReportReporter")
   notifications    Notification[]
+  fcmTokens        UserFcmToken[]
 
   @@map("users")
 }
@@ -220,4 +221,20 @@ model Notification {
   @@index([userId, deletedAt, createdAt], map: "notifications_user_deleted_created_idx")
   @@index([userId, readAt], map: "notifications_user_read_idx")
   @@map("notifications")
+}
+
+model UserFcmToken {
+  id         BigInt    @id @default(autoincrement())
+  userId     BigInt    @map("user_id")
+  token      String    @unique
+  lastUsedAt DateTime  @default(now()) @map("last_used_at") @db.Timestamptz(6)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "user_fcm_tokens_user_id_idx")
+  @@index([userId, revokedAt], map: "user_fcm_tokens_user_active_idx")
+  @@map("user_fcm_tokens")
 }
