@@ -6,6 +6,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../auth/services/auth_api.dart';
 import '../../auth/services/token_storage.dart';
 import '../../auth/viewmodels/auth_state.dart';
+import '../../notification/services/fcm_service.dart';
+import '../../notification/services/fcm_token_api.dart';
 import '../viewmodels/splash_viewmodel.dart';
 
 class SplashPage extends StatefulWidget {
@@ -18,6 +20,8 @@ class SplashPage extends StatefulWidget {
 class _SplashPageState extends State<SplashPage> {
   late final SplashViewModel viewModel;
   final String baseUrl = dotenv.env['BASE_URL']!;
+  bool _didRegisterFcmToken = false;
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +42,7 @@ class _SplashPageState extends State<SplashPage> {
 
     if (viewModel.user != null) {
       context.read<AuthState>().setUser(viewModel.user!);
+      _registerFcmTokenOnce();
     }
 
     if (viewModel.shouldGoHome) {
@@ -52,6 +57,27 @@ class _SplashPageState extends State<SplashPage> {
 
     if (viewModel.shouldGoLogin) {
       Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  void _registerFcmTokenOnce() {
+    if (_didRegisterFcmToken) return;
+
+    _didRegisterFcmToken = true;
+    _registerFcmToken();
+  }
+
+  Future<void> _registerFcmToken() async {
+    try {
+      await FcmService(
+        fcmTokenApi: FcmTokenApi(
+          baseUrl: baseUrl,
+          authApi: AuthApi(baseUrl: baseUrl),
+          tokenStorage: TokenStorage(),
+        ),
+      ).initialize();
+    } catch (_) {
+      // FCM 토큰 등록 실패가 자동 로그인 흐름을 막지 않게 둠
     }
   }
 

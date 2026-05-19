@@ -6,6 +6,8 @@ import '../services/auth_api.dart';
 import '../viewmodels/login_viewmodel.dart';
 import '../services/token_storage.dart';
 import '../viewmodels/auth_state.dart';
+import '../../notification/services/fcm_token_api.dart';
+import '../../notification/services/fcm_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -41,10 +43,26 @@ class _LoginPageState extends State<LoginPage> {
 
     context.read<AuthState>().setUser(result.user);
 
+    _registerFcmToken();
+
     if (result.user.profileCompleted) {
       Navigator.pushReplacementNamed(context, '/home');
     } else {
       Navigator.pushReplacementNamed(context, '/nickname');
+    }
+  }
+
+  Future<void> _registerFcmToken() async {
+    try {
+      await FcmService(
+        fcmTokenApi: FcmTokenApi(
+          baseUrl: baseUrl,
+          authApi: AuthApi(baseUrl: baseUrl),
+          tokenStorage: TokenStorage(),
+        ),
+      ).initialize();
+    } catch (_) {
+      // FCM 등록 실패가 로그인 자체를 막으면 안 됨
     }
   }
 
