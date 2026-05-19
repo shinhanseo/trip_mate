@@ -179,4 +179,40 @@ router.delete("/", authRequired, async (req: AuthRequest, res: Response) => {
   }
 });
 
+
+router.post("/fcm-token", authRequired, async (req: AuthRequest, res: Response) => {
+  const userId = req.user!.userId;
+  const { token } = req.body;
+
+  if (typeof token !== "string" || !token.trim()) {
+    return fail(res, 400, "invalid fcm token");
+  }
+
+  try {
+    await prisma.userFcmToken.upsert({
+      where: {
+        token: token.trim(),
+      },
+      create: {
+        userId: BigInt(userId),
+        token: token.trim(),
+        lastUsedAt: new Date(),
+        revokedAt: null,
+      },
+      update: {
+        userId: BigInt(userId),
+        lastUsedAt: new Date(),
+        revokedAt: null,
+        updatedAt: new Date(),
+      },
+    });
+
+    return ok(res, {
+      message: "fcm token saved",
+    });
+  } catch (error: any) {
+    return fail(res, 500, "failed to get fcm token", error?.message);
+  }
+
+});
 export default router;
