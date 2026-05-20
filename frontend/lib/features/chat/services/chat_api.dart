@@ -51,18 +51,11 @@ class ChatApi {
   Future<String> getValidAccessToken({bool forceRefresh = false}) async {
     final accessToken = await tokenStorage.getAccessToken();
 
-    if (!forceRefresh && accessToken != null && accessToken.isNotEmpty) {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/chat/rooms'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $accessToken',
-        },
-      );
-
-      if (response.statusCode != 401) {
-        return accessToken;
-      }
+    if (!forceRefresh &&
+        accessToken != null &&
+        accessToken.isNotEmpty &&
+        !_isAccessTokenExpiring(accessToken)) {
+      return accessToken;
     }
 
     final refreshToken = await tokenStorage.getRefreshToken();
@@ -82,6 +75,26 @@ class ChatApi {
     await tokenStorage.saveRefreshToken(newRefreshToken);
 
     return newAccessToken;
+  }
+
+  bool _isAccessTokenExpiring(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+
+      final normalized = base64Url.normalize(parts[1]);
+      final payload =
+          jsonDecode(utf8.decode(base64Url.decode(normalized)))
+              as Map<String, dynamic>;
+      final exp = payload['exp'];
+
+      if (exp is! int) return true;
+
+      final expiresAt = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+      return expiresAt.isBefore(DateTime.now().add(const Duration(minutes: 2)));
+    } catch (_) {
+      return true;
+    }
   }
 
   Future<http.Response> _authorizedGet(Uri url) async {

@@ -4,6 +4,8 @@ import '../models/login_response_model.dart';
 
 class AuthApi {
   final String baseUrl;
+  static Future<Map<String, dynamic>>? _refreshInFlight;
+  static String? _refreshTokenInFlight;
 
   AuthApi({required this.baseUrl});
 
@@ -52,6 +54,29 @@ class AuthApi {
   Future<Map<String, dynamic>> updateAccessToken({
     required String refreshToken,
   }) async {
+    final inFlight = _refreshInFlight;
+
+    if (inFlight != null && _refreshTokenInFlight == refreshToken) {
+      return inFlight;
+    }
+
+    final refreshFuture = _requestAccessTokenRefresh(refreshToken);
+    _refreshInFlight = refreshFuture;
+    _refreshTokenInFlight = refreshToken;
+
+    try {
+      return await refreshFuture;
+    } finally {
+      if (identical(_refreshInFlight, refreshFuture)) {
+        _refreshInFlight = null;
+        _refreshTokenInFlight = null;
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> _requestAccessTokenRefresh(
+    String refreshToken,
+  ) async {
     final url = Uri.parse('$baseUrl/api/auth/refresh');
 
     final response = await http.post(

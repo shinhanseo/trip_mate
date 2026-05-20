@@ -73,7 +73,9 @@ class ChatSocketService {
           previousLastReadMessageId: _toInt(map['previousLastReadMessageId']),
           lastReadMessageId: _toInt(map['lastReadMessageId']),
         );
-      } catch (e) {}
+      } catch (_) {
+        onError('읽음 상태 형식이 올바르지 않습니다.');
+      }
     });
 
     _socket!.on('socket_error', (data) {
@@ -85,7 +87,7 @@ class ChatSocketService {
     });
 
     _socket!.onConnectError((data) {
-      const message = '채팅 서버 연결에 실패했습니다.';
+      final message = _parseConnectionErrorMessage(data);
       if (!joinCompleter.isCompleted) {
         joinCompleter.completeError(Exception(message));
       }
@@ -99,7 +101,17 @@ class ChatSocketService {
     _socket!.onDisconnect((data) {});
 
     _socket!.connect();
-    await joinCompleter.future;
+    try {
+      await joinCompleter.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('채팅방 입장 시간이 초과되었습니다.');
+        },
+      );
+    } catch (_) {
+      _socket?.disconnect();
+      rethrow;
+    }
   }
 
   bool sendMessage({required int meetingId, required String content}) {
@@ -146,6 +158,22 @@ class ChatSocketService {
   String _parseErrorMessage(dynamic data) {
     final map = Map<String, dynamic>.from(data as Map);
     return (map['message'] ?? 'socket error').toString();
+  }
+
+  String _parseConnectionErrorMessage(dynamic data) {
+    final fallback = '채팅 서버 연결에 실패했습니다.';
+
+    try {
+      if (data is Map) {
+        final map = Map<String, dynamic>.from(data);
+        return (map['message'] ?? map['error'] ?? fallback).toString();
+      }
+
+      final message = data?.toString() ?? '';
+      return message.isEmpty ? fallback : message;
+    } catch (_) {
+      return fallback;
+    }
   }
 
   int _toInt(dynamic value) {
