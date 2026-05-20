@@ -6,7 +6,7 @@ import { createNotification } from "../modules/notifications/notifications-helpe
 import { meetingMapper } from "../modules/meetings/meetings-mapper";
 import { ok, fail } from "../utils/response";
 import { getJejuRegionInfo } from "../modules/place/place-helper";
-
+import { sendPushToUsers } from "../modules/notifications/push-helper";
 const router = Router();
 
 router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
@@ -553,6 +553,10 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res: Response) => {
     return fail(res, 400, "invalid regionPrimary");
   }
 
+  let pushUserIds: number[] = [];
+  let pushTitle = "";
+  let pushBody = "";
+
   const client = await pool.connect();
 
   try {
@@ -673,7 +677,34 @@ router.patch("/:id", authRequired, async (req: AuthRequest, res: Response) => {
       [meetingId]
     );
 
+    const pushTargetsRes = await client.query(
+      `
+      select mm.user_id
+      from meeting_members mm
+      where mm.meeting_id = $1
+        and mm.status = 'joined'
+        and mm.role <> 'host'
+      `,
+      [meetingId]
+    );
+
+    pushUserIds = pushTargetsRes.rows.map((row) => Number(row.user_id));
+    pushTitle = "동행 정보가 수정됐어요";
+    pushBody = `"${meeting.title}" 동행 정보가 수정됐어요.`;
+
     await client.query("commit");
+
+    try {
+      await sendPushToUsers({
+        userIds: pushUserIds,
+        title: pushTitle,
+        body: pushBody,
+        targetType: "meeting",
+        targetId: meetingId,
+      });
+    } catch (error) {
+      console.error("failed to send meeting update push", error);
+    }
 
     return ok(res, {
       item: {
@@ -1035,6 +1066,14 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
 
     await client.query("commit");
 
+    await sendPushToUsers({
+      userIds: [Number(meeting.host_user_id)],
+      title: "새 동행자가 참여했어요",
+      body: `${nickname}님이 "${meeting.title}" 동행에 참여했어요.`,
+      targetType: "meeting",
+      targetId: meetingId,
+    });
+
     return ok(
       res,
       {
@@ -1185,6 +1224,14 @@ router.post("/:id/leave", authRequired, async (req: AuthRequest, res: Response) 
     });
 
     await client.query("commit");
+
+    await sendPushToUsers({
+      userIds: [Number(meeting.host_user_id)],
+      title: "동행자가 나갔어요",
+      body: `${nickname}님이 "${meeting.title}" 동행에서 나갔어요.`,
+      targetType: "meeting",
+      targetId: meetingId,
+    });
 
     return ok(res, {
       message: "meeting left",
