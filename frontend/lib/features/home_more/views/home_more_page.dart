@@ -73,10 +73,25 @@ class _HomeMorePageState extends State<HomeMorePage> {
     );
   }
 
+  Future<void> _clearFiltersAndSearch() async {
+    final vm = context.read<HomeMoreViewModel>();
+
+    _searchController.clear();
+    vm.clearFilters();
+    await vm.loadMeeting(forceRefresh: true);
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<HomeMoreViewModel>();
     final items = vm.meetingList?.items ?? [];
+    final hasFilters = hasMeetingFilters(
+      category: vm.selectedCategory,
+      ageGroup: vm.selectedAgeGroup,
+      gender: vm.selectedGender,
+      regionPrimary: vm.selectedRegionPrimary,
+      query: _searchController.text,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -199,15 +214,14 @@ class _HomeMorePageState extends State<HomeMorePage> {
                           children: [
                             SizedBox(
                               height: MediaQuery.of(context).size.height * 0.45,
-                              child: Center(
-                                child: Text(
-                                  vm.errorMessage!,
-                                  style: const TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                              child: _MeetingStateView(
+                                icon: Icons.error_outline_rounded,
+                                title: '동행을 불러오지 못했어요',
+                                message: vm.errorMessage!,
+                                actionLabel: '다시 시도',
+                                onAction: () {
+                                  context.read<HomeMoreViewModel>().refresh();
+                                },
                               ),
                             ),
                           ],
@@ -216,24 +230,35 @@ class _HomeMorePageState extends State<HomeMorePage> {
                       ? ListView(
                           children: [
                             SizedBox(
-                              height: 300,
-                              child: Center(
-                                child: Text(
-                                  hasMeetingFilters(
-                                        category: vm.selectedCategory,
-                                        ageGroup: vm.selectedAgeGroup,
-                                        gender: vm.selectedGender,
-                                        regionPrimary: vm.selectedRegionPrimary,
-                                        query: _searchController.text,
-                                      )
-                                      ? '조건에 맞는 동행이 없습니다.'
-                                      : '아직 생성된 동행이 없습니다.',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.neutralGray,
-                                  ),
-                                ),
+                              height: MediaQuery.of(context).size.height * 0.46,
+                              child: _MeetingStateView(
+                                icon: hasFilters
+                                    ? Icons.search_off_rounded
+                                    : Icons.groups_outlined,
+                                title: hasFilters
+                                    ? '조건에 맞는 동행이 없어요'
+                                    : '아직 열린 동행이 없어요',
+                                message: hasFilters
+                                    ? '조건을 초기화하면 모집 중인 동행을\n다시 한눈에 볼 수 있어요.'
+                                    : '첫 동행을 만들어 제주 여행을\n함께 시작해보세요.',
+                                actionLabel: hasFilters ? '조건 초기화' : '동행 모집하기',
+                                onAction: hasFilters
+                                    ? _clearFiltersAndSearch
+                                    : () async {
+                                        final result =
+                                            await Navigator.pushNamed(
+                                              context,
+                                              '/meetingcreate',
+                                            );
+
+                                        if (!context.mounted) return;
+
+                                        if (result == true) {
+                                          await context
+                                              .read<HomeMoreViewModel>()
+                                              .refresh();
+                                        }
+                                      },
                               ),
                             ),
                           ],
@@ -310,6 +335,89 @@ class _HomeMorePageState extends State<HomeMorePage> {
         ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 1),
+    );
+  }
+}
+
+class _MeetingStateView extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  const _MeetingStateView({
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 74,
+              height: 74,
+              decoration: BoxDecoration(
+                color: AppColors.brandMint.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(icon, size: 34, color: AppColors.brandTeal),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.45,
+                fontWeight: FontWeight.w500,
+                color: AppColors.gray500,
+              ),
+            ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 18),
+              OutlinedButton(
+                onPressed: onAction,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.brandMint),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
+                ),
+                child: Text(
+                  actionLabel!,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.brandTeal,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
