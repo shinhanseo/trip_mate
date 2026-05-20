@@ -2,6 +2,7 @@ import { Router, Response } from "express";
 import { pool } from "../db";
 import { authRequired, AuthRequest } from "../middleware/authRequired";
 import { ok, fail } from "../utils/response";
+import { sendPushToUsers } from "../modules/notifications/push-helper";
 
 const router = Router();
 
@@ -175,12 +176,18 @@ router.post(
 
       const roomRes = await client.query(
         `
-        select cr.id
+        select
+          cr.id,
+          m.title as meeting_title
         from chat_rooms cr
+        join meetings m
+          on m.id = cr.meeting_id
         where cr.meeting_id = $1
         `,
         [meetingId]
       );
+
+      const meetingTitle = roomRes.rows[0].meeting_title;
 
       if (roomRes.rowCount === 0) {
         await client.query("rollback");
@@ -240,7 +247,34 @@ router.post(
         [userId]
       );
 
+      const pushTargetsRes = await client.query(
+        `
+        select user_id
+        from chat_room_members
+        where room_id = $1
+          and user_id <> $2
+          and joined_at <= $3
+        `,
+        [roomId, userId, message.created_at]
+      );
+
+      const pushUserIds = pushTargetsRes.rows.map((row) => Number(row.user_id));
+
       await client.query("commit");
+
+      try {
+        const senderNickname = senderRes.rows[0]?.nickname ?? "동행자";
+
+        await sendPushToUsers({
+          userIds: pushUserIds,
+          title: `"${meetingTitle}" 새 메시지`,
+          body: `${senderNickname}님: ${message.content}`,
+          targetType: "chat",
+          targetId: meetingId,
+        });
+      } catch (error) {
+        console.error("failed to send chat message push", error);
+      }
 
       return ok(
         res,
