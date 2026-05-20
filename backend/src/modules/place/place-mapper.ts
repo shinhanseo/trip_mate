@@ -14,7 +14,7 @@ export function buildPlaceItem(params: {
 
   return {
     ...params,
-    regionPrimary,
-    regionSecondary,
+    regionPrimary: regionPrimary ?? undefined,
+    regionSecondary: regionSecondary ?? undefined,
   };
 }

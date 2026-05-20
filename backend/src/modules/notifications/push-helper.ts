@@ -48,6 +48,21 @@ export async function sendPushToUsers(input: SendPushToUsersInput) {
       title: input.title,
       body: input.body,
     },
+    android: {
+      priority: "high",
+      notification: {
+        channelId: "mohaeng_default_channel",
+        sound: "default",
+        defaultVibrateTimings: true,
+      },
+    },
+    apns: {
+      payload: {
+        aps: {
+          sound: "default",
+        },
+      },
+    },
     data: {
       targetType: input.targetType ?? "",
       targetId: input.targetId == null ? "" : String(input.targetId),
