@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
@@ -20,6 +22,21 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    val keystoreProperties = Properties()
+    val hasReleaseKeystore = keystorePropertiesFile.exists()
+    val isReleaseTask = gradle.startParameter.taskNames.any {
+        it.contains("Release", ignoreCase = true) || it.contains("bundle", ignoreCase = true)
+    }
+
+    if (hasReleaseKeystore) {
+        keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+    } else if (isReleaseTask) {
+        throw GradleException(
+            "Missing android/key.properties. Create it from android/key.properties.example before building a release app bundle."
+        )
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.hanseo.mohaeng"
@@ -31,11 +48,24 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (hasReleaseKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
