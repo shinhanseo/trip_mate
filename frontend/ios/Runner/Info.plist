@@ -39,6 +39,8 @@
 	<true/>
 	<key>NMFClientId</key>
 	<string>tm59dymn18</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>모임 장소 주변 지도를 표시하고 위치 기반 지도 기능을 제공하기 위해 위치 정보 접근이 필요합니다.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>편집한 이미지를 저장하기 위해 사진 라이브러리 접근이 필요합니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
