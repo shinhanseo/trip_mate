@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
 
 import '../models/place_search_model.dart';
 import '../services/place_search_api.dart';
@@ -32,8 +33,9 @@ class PlaceSearchViewModel extends ChangeNotifier {
 
       final result = await placeSearchApi.searchPlaces(trimmed);
       places = result;
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to search places', e, stackTrace);
+      errorMessage = AppErrorMessages.placeSearch;
       places = [];
     } finally {
       isLoading = false;

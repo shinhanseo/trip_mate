@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/constants/app_colors.dart';
+import 'package:frontend/core/network/network_status_viewmodel.dart';
+import 'package:frontend/core/utils/app_error.dart';
 import 'package:frontend/core/widgets/bottom_nav_bar.dart';
 import 'package:frontend/features/meeting_shared/utils/meeting_filter_options.dart';
 import 'package:provider/provider.dart';
@@ -143,14 +145,15 @@ class _MyPageState extends State<MyPage> {
               '/login',
               (route) => false,
             );
-          } catch (e) {
+          } catch (e, stackTrace) {
+            logAppError('Failed to delete account from my page', e, stackTrace);
             if (!mounted) return;
 
             showDialog(
               context: context,
-              builder: (_) => CustomMessageDialog(
+              builder: (_) => const CustomMessageDialog(
                 title: '탈퇴할 수 없어요.',
-                message: e.toString().replaceFirst('Exception: ', ''),
+                message: AppErrorMessages.accountDelete,
               ),
             );
           }
@@ -298,39 +301,49 @@ class _MyPageState extends State<MyPage> {
   Widget build(BuildContext context) {
     final vm = context.watch<MyPageViewModel>();
     final me = vm.myInfo;
+    final isOffline = context.watch<NetworkStatusViewModel>().isOffline;
 
     if (vm.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: AppColors.white,
+        appBar: _buildAppBar(),
+        body: const Center(child: CircularProgressIndicator()),
+        bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+      );
     }
 
     if (vm.errorMessage != null) {
-      return Scaffold(body: Center(child: Text(vm.errorMessage!)));
+      return _MyPageStateScaffold(
+        appBar: _buildAppBar(),
+        icon: isOffline ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+        title: isOffline ? '인터넷 연결이 끊겼어요' : '마이페이지를 불러오지 못했어요',
+        message: isOffline ? '연결 상태를 확인한 뒤 다시 시도해주세요.' : vm.errorMessage!,
+        actionLabel: '다시 시도',
+        onAction: () {
+          context.read<MyPageViewModel>().getMe();
+          context.read<NotificationViewModel>().loadUnreadCount();
+        },
+      );
     }
 
     if (me == null) {
-      return const Scaffold(body: Center(child: Text('유저 프로필 정보가 없습니다.')));
+      return _MyPageStateScaffold(
+        appBar: _buildAppBar(),
+        icon: Icons.person_search_outlined,
+        title: '프로필 정보가 없어요',
+        message: '프로필 정보를 다시 불러와주세요.',
+        actionLabel: '다시 시도',
+        onAction: () {
+          context.read<MyPageViewModel>().getMe();
+        },
+      );
     }
 
     final categories = meetingCategoryLabels(me.favoriteTags ?? []);
 
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        surfaceTintColor: AppColors.white,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        title: const Text(
-          '마이페이지',
-          style: TextStyle(
-            fontSize: 25,
-            color: AppColors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        automaticallyImplyLeading: false,
-        actions: const [NotificationIconButton(), SizedBox(width: 8)],
-      ),
+      appBar: _buildAppBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -518,6 +531,153 @@ class _MyPageState extends State<MyPage> {
         ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: AppColors.white,
+      surfaceTintColor: AppColors.white,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      title: const Text(
+        '마이페이지',
+        style: TextStyle(
+          fontSize: 25,
+          color: AppColors.black,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      automaticallyImplyLeading: false,
+      actions: const [NotificationIconButton(), SizedBox(width: 8)],
+    );
+  }
+}
+
+class _MyPageStateScaffold extends StatelessWidget {
+  final PreferredSizeWidget appBar;
+  final IconData icon;
+  final String title;
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  const _MyPageStateScaffold({
+    required this.appBar,
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      appBar: appBar,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async => onAction(),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
+            children: [
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.58,
+                child: _MyPageStateView(
+                  icon: icon,
+                  title: title,
+                  message: message,
+                  actionLabel: actionLabel,
+                  onAction: onAction,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+    );
+  }
+}
+
+class _MyPageStateView extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  const _MyPageStateView({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                color: AppColors.brandMint.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(icon, size: 34, color: AppColors.brandTeal),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.45,
+                fontWeight: FontWeight.w500,
+                color: AppColors.gray500,
+              ),
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              onPressed: onAction,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text(actionLabel),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.brandTeal,
+                side: const BorderSide(color: AppColors.brandMint),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

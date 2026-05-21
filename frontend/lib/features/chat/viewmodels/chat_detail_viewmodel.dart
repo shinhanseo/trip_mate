@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
 
 import '../models/chat_detail_model.dart';
 import '../services/chat_api.dart';
@@ -46,9 +47,10 @@ class ChatDetailViewModel extends ChangeNotifier {
       }
 
       hasLoaded = true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logAppError('Failed to load chat detail', e, stackTrace);
       hasLoaded = false;
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+      errorMessage = AppErrorMessages.chatDetail;
       chatDetail = null;
     } finally {
       isLoading = false;
@@ -60,7 +62,12 @@ class ChatDetailViewModel extends ChangeNotifier {
     try {
       final accessToken = await chatApi.getValidAccessToken();
       await _connectSocketWithToken(meetingId, accessToken);
-    } catch (error) {
+    } catch (error, stackTrace) {
+      logAppError(
+        'Failed to connect chat socket with current token',
+        error,
+        stackTrace,
+      );
       final refreshedAccessToken = await chatApi.getValidAccessToken(
         forceRefresh: true,
       );
@@ -159,7 +166,8 @@ class ChatDetailViewModel extends ChangeNotifier {
   }
 
   void _handleSocketError(String message) {
-    errorMessage = message;
+    logAppError('Chat socket error', message);
+    errorMessage = AppErrorMessages.chatConnection;
     notifyListeners();
   }
 

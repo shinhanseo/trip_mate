@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/constants/app_colors.dart';
+import 'package:frontend/core/utils/app_error.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/meeting_shared/widgets/meeting_filter_chips.dart';
 import '../models/mypage_model.dart';
@@ -74,14 +75,15 @@ class _MyProfileEditPageState extends State<MyProfileEditPage> {
       setState(() {
         _profileImageUrl = imageUrl;
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logAppError('Failed to upload profile image', e, stackTrace);
       if (!mounted) return;
 
       showDialog(
         context: context,
-        builder: (_) => CustomMessageDialog(
+        builder: (_) => const CustomMessageDialog(
           title: '업로드할 수 없어요.',
-          message: e.toString().replaceFirst('Exception: ', ''),
+          message: AppErrorMessages.profileImageUpload,
         ),
       );
     }
@@ -388,17 +390,19 @@ class _MyProfileEditPageState extends State<MyProfileEditPage> {
 
                           if (!context.mounted) return;
                           Navigator.pop(context, true);
-                        } catch (e) {
+                        } catch (e, stackTrace) {
+                          logAppError(
+                            'Failed to submit profile edit',
+                            e,
+                            stackTrace,
+                          );
                           if (!context.mounted) return;
 
                           showDialog(
                             context: context,
-                            builder: (_) => CustomMessageDialog(
+                            builder: (_) => const CustomMessageDialog(
                               title: '수정할 수 없어요.',
-                              message: e.toString().replaceFirst(
-                                'Exception: ',
-                                '',
-                              ),
+                              message: AppErrorMessages.profileEdit,
                             ),
                           );
                         }

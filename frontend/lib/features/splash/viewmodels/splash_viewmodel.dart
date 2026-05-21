@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
+
 import '../../auth/models/login_response_model.dart';
 import '../../auth/services/auth_api.dart';
 import '../../auth/services/token_storage.dart';
@@ -64,7 +66,13 @@ class SplashViewModel extends ChangeNotifier {
 
           _didInitialize = true;
           return;
-        } catch (e) {}
+        } catch (e, stackTrace) {
+          logAppError(
+            'Failed to validate access token during splash',
+            e,
+            stackTrace,
+          );
+        }
       }
 
       if (refreshToken == null || refreshToken.isEmpty) {
@@ -99,20 +107,21 @@ class SplashViewModel extends ChangeNotifier {
       }
 
       _didInitialize = true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logAppError('Failed to initialize splash', e, stackTrace);
       await tokenStorage.clearTokens();
 
       if (_isDisposed) return;
 
       shouldGoLogin = true;
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+      errorMessage = AppErrorMessages.splash;
     } finally {
       _isInitializing = false;
 
-      if (_isDisposed) return;
-
-      isLoading = false;
-      _safeNotify();
+      if (!_isDisposed) {
+        isLoading = false;
+        _safeNotify();
+      }
     }
   }
 

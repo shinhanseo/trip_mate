@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
 
 import '../models/notification_model.dart';
 import '../services/notification_api.dart';
@@ -30,8 +31,9 @@ class NotificationViewModel extends ChangeNotifier {
       _unreadCount = _notifications
           .where((notification) => notification.readAt == null)
           .length;
-    } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to load notifications', e, stackTrace);
+      _errorMessage = AppErrorMessages.notifications;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -42,8 +44,9 @@ class NotificationViewModel extends ChangeNotifier {
     try {
       _unreadCount = await notificationApi.getUnreadCount();
       notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to load unread notification count', e, stackTrace);
+      _errorMessage = AppErrorMessages.notifications;
       notifyListeners();
     }
   }
@@ -73,8 +76,9 @@ class NotificationViewModel extends ChangeNotifier {
       }
 
       notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to mark notification as read', e, stackTrace);
+      _errorMessage = AppErrorMessages.notificationAction;
       notifyListeners();
       rethrow;
     }
@@ -92,8 +96,9 @@ class NotificationViewModel extends ChangeNotifier {
 
       _unreadCount = 0;
       notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to mark all notifications as read', e, stackTrace);
+      _errorMessage = AppErrorMessages.notificationAction;
       notifyListeners();
       rethrow;
     }
@@ -120,8 +125,9 @@ class NotificationViewModel extends ChangeNotifier {
       }
 
       notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to delete notification', e, stackTrace);
+      _errorMessage = AppErrorMessages.notificationAction;
       notifyListeners();
       rethrow;
     }
@@ -134,8 +140,9 @@ class NotificationViewModel extends ChangeNotifier {
       _notifications = [];
       _unreadCount = 0;
       notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to delete all notifications', e, stackTrace);
+      _errorMessage = AppErrorMessages.notificationAction;
       notifyListeners();
       rethrow;
     }

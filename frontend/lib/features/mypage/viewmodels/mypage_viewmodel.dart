@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
+
 import '../models/mypage_model.dart';
 import '../services/mypage_api.dart';
 
@@ -25,8 +27,9 @@ class MyPageViewModel extends ChangeNotifier {
 
       myInfo = result;
       isSuccess = true;
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to load my page', e, stackTrace);
+      errorMessage = AppErrorMessages.myPage;
       isSuccess = false;
       myInfo = null;
     } finally {
@@ -44,8 +47,9 @@ class MyPageViewModel extends ChangeNotifier {
       notifyListeners();
 
       await myPageApi.deleteUser();
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to delete user', e, stackTrace);
+      errorMessage = AppErrorMessages.accountDelete;
       rethrow;
     } finally {
       isDeleting = false;

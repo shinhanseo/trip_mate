@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
+
 import '../services/mypage_api.dart';
 import '../models/profile_edit_model.dart';
 
@@ -20,8 +22,9 @@ class ProfileEditViewModel extends ChangeNotifier {
 
       await myPageApi.editUser(edit: edit);
       isSuccess = true;
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to edit profile', e, stackTrace);
+      errorMessage = AppErrorMessages.profileEdit;
       isSuccess = false;
       rethrow;
     } finally {

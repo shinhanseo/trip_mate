@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/login_response_model.dart';
@@ -54,9 +55,10 @@ class LoginViewModel extends ChangeNotifier {
       if (!launched) {
         throw Exception('네이버 로그인 페이지를 열 수 없습니다.');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logAppError('Failed to start Naver login', e, stackTrace);
       isLoading = false;
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+      errorMessage = AppErrorMessages.auth;
       _safeNotify();
     }
   }
@@ -77,13 +79,17 @@ class LoginViewModel extends ChangeNotifier {
     try {
       if (success != 'true') {
         isLoading = false;
-        errorMessage = message ?? '네이버 로그인에 실패했습니다.';
+        if (message != null && message.isNotEmpty) {
+          logAppError('Naver login callback failed', message);
+        }
+        errorMessage = AppErrorMessages.auth;
         return;
       }
 
       if (exchangeCode == null || exchangeCode.isEmpty) {
         isLoading = false;
-        errorMessage = 'exchangeCode가 없습니다.';
+        logAppError('Naver login callback failed', 'Missing exchangeCode');
+        errorMessage = AppErrorMessages.auth;
         return;
       }
 
@@ -96,8 +102,9 @@ class LoginViewModel extends ChangeNotifier {
 
       loginResult = result;
       errorMessage = null;
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to handle Naver login callback', e, stackTrace);
+      errorMessage = AppErrorMessages.auth;
     } finally {
       isLoading = false;
       _isHandlingCallback = false;

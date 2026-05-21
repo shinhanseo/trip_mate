@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
+
 import '../../home_more/models/meeting_model.dart';
 import '../services/mypage_api.dart';
 
@@ -65,8 +67,9 @@ class MyMeetingViewModel extends ChangeNotifier {
 
       meetingList = result;
       isSuccess = true;
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to load my meetings', e, stackTrace);
+      errorMessage = AppErrorMessages.meetingList;
       isSuccess = false;
       meetingList = null;
     } finally {

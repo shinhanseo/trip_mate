@@ -8,6 +8,7 @@ import 'features/auth/viewmodels/auth_state.dart';
 import 'features/auth/services/auth_api.dart';
 import 'features/auth/services/token_storage.dart';
 import 'core/network/network_status_viewmodel.dart';
+import 'core/utils/app_error.dart';
 import 'app/app.dart';
 
 Future<void> main() async {
@@ -59,14 +60,12 @@ Future<void> main() async {
       ),
     );
 
-    runApp(_BootstrapErrorApp(message: error.toString()));
+    runApp(const _BootstrapErrorApp());
   }
 }
 
 class _BootstrapErrorApp extends StatelessWidget {
-  const _BootstrapErrorApp({required this.message});
-
-  final String message;
+  const _BootstrapErrorApp();
 
   @override
   Widget build(BuildContext context) {
@@ -92,10 +91,10 @@ class _BootstrapErrorApp extends StatelessWidget {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  message.replaceFirst('Exception: ', ''),
+                const Text(
+                  AppErrorMessages.bootstrap,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 15, height: 1.5),
+                  style: TextStyle(fontSize: 15, height: 1.5),
                 ),
               ],
             ),

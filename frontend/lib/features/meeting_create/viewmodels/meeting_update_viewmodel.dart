@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
 
 import '../../auth/services/auth_api.dart';
 import '../../auth/services/token_storage.dart';
@@ -28,7 +29,9 @@ class MeetingUpdateViewModel extends ChangeNotifier {
       final accessToken = await tokenStorage.getAccessToken();
 
       if (accessToken == null || accessToken.isEmpty) {
-        throw Exception('로그인이 필요합니다.');
+        errorMessage = AppErrorMessages.loginRequired;
+        notifyListeners();
+        return;
       }
 
       final me = await authApi.getMe(accessToken);
@@ -37,8 +40,13 @@ class MeetingUpdateViewModel extends ChangeNotifier {
       ageRange = _normalizeAgeRange(me.ageRange);
 
       notifyListeners();
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError(
+        'Failed to load current user for meeting update',
+        e,
+        stackTrace,
+      );
+      errorMessage = AppErrorMessages.auth;
       notifyListeners();
     }
   }
@@ -53,8 +61,9 @@ class MeetingUpdateViewModel extends ChangeNotifier {
       await meetingApi.updateMeeting(meeting: meeting);
 
       isSuccess = true;
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to update meeting', e, stackTrace);
+      errorMessage = AppErrorMessages.meetingUpdate;
       isSuccess = false;
       rethrow;
     } finally {

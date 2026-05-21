@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
+
 import '../models/meeting_model.dart';
 import '../services/meeting_api.dart';
 
@@ -38,8 +40,9 @@ class HomeMoreViewModel extends ChangeNotifier {
 
       meetingList = result;
       _hasLoaded = true;
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to load meetings', e, stackTrace);
+      errorMessage = AppErrorMessages.meetingList;
       meetingList = null;
     } finally {
       isLoading = false;

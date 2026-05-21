@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
 
 import '../models/report_model.dart';
 import '../services/report_api.dart';
@@ -37,8 +38,9 @@ class ReportViewModel extends ChangeNotifier {
       );
 
       return true;
-    } catch (error) {
-      _errorMessage = error.toString();
+    } catch (error, stackTrace) {
+      logAppError('Failed to create report', error, stackTrace);
+      _errorMessage = AppErrorMessages.report;
       return false;
     } finally {
       _isLoading = false;

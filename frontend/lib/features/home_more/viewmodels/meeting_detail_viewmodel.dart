@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:frontend/core/utils/app_error.dart';
+
 import '../models/meeting_model.dart';
 import '../services/meeting_api.dart';
 
@@ -32,8 +34,9 @@ class MeetingDetailViewModel extends ChangeNotifier {
 
       meetingDetail = result;
       _hasLoaded = true;
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to load meeting detail', e, stackTrace);
+      errorMessage = AppErrorMessages.meetingDetail;
       meetingDetail = null;
     } finally {
       isLoading = false;
@@ -54,7 +57,8 @@ class MeetingDetailViewModel extends ChangeNotifier {
       final result = await meetingApi.getMeetingDetail(meetingId: meetingId);
       meetingDetail = result;
       _hasLoaded = true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logAppError('Failed to join meeting', e, stackTrace);
       rethrow;
     } finally {
       isLoading = false;
@@ -71,7 +75,8 @@ class MeetingDetailViewModel extends ChangeNotifier {
 
       meetingDetail = null;
       _hasLoaded = false;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logAppError('Failed to leave meeting', e, stackTrace);
       rethrow;
     } finally {
       isLoading = false;
@@ -88,7 +93,8 @@ class MeetingDetailViewModel extends ChangeNotifier {
 
       meetingDetail = null;
       _hasLoaded = false;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      logAppError('Failed to delete meeting', e, stackTrace);
       rethrow;
     } finally {
       isLoading = false;

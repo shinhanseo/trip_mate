@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/constants/app_colors.dart';
+import 'package:frontend/core/utils/app_error.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/meeting_detail_viewmodel.dart';
 import '../../../core/widgets/custom_message_dialog.dart';
@@ -378,17 +379,19 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                                       '/home',
                                       (route) => false,
                                     );
-                                  } catch (e) {
+                                  } catch (e, stackTrace) {
+                                    logAppError(
+                                      'Failed to delete meeting from detail page',
+                                      e,
+                                      stackTrace,
+                                    );
                                     if (!context.mounted) return;
 
                                     showDialog(
                                       context: context,
-                                      builder: (_) => CustomMessageDialog(
+                                      builder: (_) => const CustomMessageDialog(
                                         title: '삭제할 수 없어요.',
-                                        message: e.toString().replaceFirst(
-                                          'Exception: ',
-                                          '',
-                                        ),
+                                        message: AppErrorMessages.meetingDelete,
                                       ),
                                     );
                                   }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/utils/app_error.dart';
+
 import '../services/mypage_api.dart';
 import '../models/mypage_model.dart';
 
@@ -23,8 +25,9 @@ class UserProfileViewModel extends ChangeNotifier {
       final result = await myPageApi.getUserProfile(userId: userId);
       userProfile = result;
       isSuccess = true;
-    } catch (e) {
-      errorMessage = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) {
+      logAppError('Failed to load user profile', e, stackTrace);
+      errorMessage = AppErrorMessages.profile;
       isSuccess = false;
       userProfile = null;
     } finally {
