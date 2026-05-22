@@ -13,6 +13,34 @@ class AuthApi {
     return '$baseUrl/api/auth/naver';
   }
 
+  Future<LoginResponseModel> loginWithApple({
+    required String identityToken,
+    String? authorizationCode,
+    String? fullName,
+    String? email,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/auth/apple');
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'identity_token': identityToken,
+        'authorization_code': authorizationCode,
+        'full_name': fullName,
+        'email': email,
+      }),
+    );
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return LoginResponseModel.fromJson(json['data']);
+    }
+
+    throw Exception(json['message'] ?? 'Apple 로그인에 실패했습니다.');
+  }
+
   Future<LoginResponseModel> exchangeCode(String exchangeCode) async {
     final url = Uri.parse('$baseUrl/api/auth/session/exchange');
 
@@ -119,6 +147,36 @@ class AuthApi {
     }
 
     throw Exception(json['message'] ?? '닉네임 설정에 실패했습니다.');
+  }
+
+  Future<UserModel> completeOnboarding({
+    required String accessToken,
+    required String nickname,
+    String? gender,
+    String? ageRange,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/user/onboarding');
+
+    final response = await http.patch(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+      body: jsonEncode({
+        'nickname': nickname,
+        'gender': gender,
+        'age_range': ageRange,
+      }),
+    );
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return UserModel.fromJson(json['data']['user']);
+    }
+
+    throw Exception(json['message'] ?? '프로필 설정에 실패했습니다.');
   }
 
   Future<void> logout({required String refreshToken}) async {

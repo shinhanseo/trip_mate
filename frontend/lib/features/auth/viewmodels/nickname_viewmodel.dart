@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/login_response_model.dart';
 import '../services/auth_api.dart';
 import '../services/token_storage.dart';
 
@@ -11,7 +12,12 @@ class NicknameViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   bool isSuccess = false;
-  Future<void> submitNickname(String nickname) async {
+  UserModel? updatedUser;
+  Future<void> submitNickname(
+    String nickname, {
+    String? gender,
+    String? ageRange,
+  }) async {
     final trimmedNickname = nickname.trim();
 
     if (trimmedNickname.isEmpty) {
@@ -41,9 +47,11 @@ class NicknameViewModel extends ChangeNotifier {
         return;
       }
 
-      await authApi.updateNickname(
+      updatedUser = await authApi.completeOnboarding(
         accessToken: accessToken,
         nickname: trimmedNickname,
+        gender: gender,
+        ageRange: ageRange,
       );
 
       isSuccess = true;

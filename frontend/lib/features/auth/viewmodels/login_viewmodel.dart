@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frontend/core/utils/app_error.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/login_response_model.dart';
@@ -47,10 +48,7 @@ class LoginViewModel extends ChangeNotifier {
 
       final url = Uri.parse(authApi.getNaverLoginUrl());
 
-      final launched = await launchUrl(
-        url,
-        mode: LaunchMode.externalApplication,
-      );
+      final launched = await launchUrl(url, mode: LaunchMode.inAppBrowserView);
 
       if (!launched) {
         throw Exception('네이버 로그인 페이지를 열 수 없습니다.');
@@ -59,6 +57,53 @@ class LoginViewModel extends ChangeNotifier {
       logAppError('Failed to start Naver login', e, stackTrace);
       isLoading = false;
       errorMessage = AppErrorMessages.auth;
+      _safeNotify();
+    }
+  }
+
+  Future<void> startAppleLogin() async {
+    try {
+      errorMessage = null;
+      isLoading = true;
+      _safeNotify();
+
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final identityToken = credential.identityToken;
+
+      if (identityToken == null || identityToken.isEmpty) {
+        throw Exception('Apple identity token is missing');
+      }
+
+      final fullName = [
+        credential.familyName,
+        credential.givenName,
+      ].where((name) => name != null && name.trim().isNotEmpty).join(' ');
+
+      final result = await authApi.loginWithApple(
+        identityToken: identityToken,
+        authorizationCode: credential.authorizationCode,
+        fullName: fullName.isEmpty ? null : fullName,
+        email: credential.email,
+      );
+
+      await tokenStorage.saveTokens(
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+      );
+
+      loginResult = result;
+      errorMessage = null;
+    } catch (e, stackTrace) {
+      logAppError('Failed to start Apple login', e, stackTrace);
+      errorMessage = AppErrorMessages.auth;
+    } finally {
+      isLoading = false;
       _safeNotify();
     }
   }

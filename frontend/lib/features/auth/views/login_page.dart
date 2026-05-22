@@ -175,6 +175,42 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
 
+              const SizedBox(height: 12),
+
+              SizedBox(
+                width: double.infinity,
+                height: 58,
+                child: ElevatedButton(
+                  onPressed: viewModel.isLoading
+                      ? null
+                      : () async {
+                          await viewModel.startAppleLogin();
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.apple, size: 28),
+                      SizedBox(width: 12),
+                      Text(
+                        'Apple로 계속하기',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 16),
 
               if (viewModel.errorMessage != null)
@@ -188,7 +224,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
 
               const Text(
-                '성별·생년월일 정보 동의가 필요합니다.',
+                'Apple로 시작하면 성별·연령대를 직접 선택합니다.',
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
 
