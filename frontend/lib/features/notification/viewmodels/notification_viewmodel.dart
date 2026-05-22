@@ -12,6 +12,7 @@ class NotificationViewModel extends ChangeNotifier {
   List<NotificationModel> _notifications = [];
   int _unreadCount = 0;
   bool _isLoading = false;
+  bool _isDisposed = false;
   String? _errorMessage;
 
   List<NotificationModel> get notifications => _notifications;
@@ -19,15 +20,24 @@ class NotificationViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  void _safeNotify() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
+
   Future<void> loadNotifications({bool forceRefresh = false}) async {
-    if (_isLoading && !forceRefresh) return;
+    if (_isDisposed || (_isLoading && !forceRefresh)) return;
 
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
-      _notifications = await notificationApi.getNotifications();
+      final notifications = await notificationApi.getNotifications();
+      if (_isDisposed) return;
+
+      _notifications = notifications;
       _unreadCount = _notifications
           .where((notification) => notification.readAt == null)
           .length;
@@ -35,19 +45,26 @@ class NotificationViewModel extends ChangeNotifier {
       logAppError('Failed to load notifications', e, stackTrace);
       _errorMessage = AppErrorMessages.notifications;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        _isLoading = false;
+        _safeNotify();
+      }
     }
   }
 
   Future<void> loadUnreadCount() async {
     try {
-      _unreadCount = await notificationApi.getUnreadCount();
-      notifyListeners();
+      final unreadCount = await notificationApi.getUnreadCount();
+      if (_isDisposed) return;
+
+      _unreadCount = unreadCount;
+      _safeNotify();
     } catch (e, stackTrace) {
       logAppError('Failed to load unread notification count', e, stackTrace);
+      if (_isDisposed) return;
+
       _errorMessage = AppErrorMessages.notifications;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -56,10 +73,11 @@ class NotificationViewModel extends ChangeNotifier {
   }
 
   Future<void> markAsRead(NotificationModel notification) async {
-    if (notification.readAt != null) return;
+    if (_isDisposed || notification.readAt != null) return;
 
     try {
       await notificationApi.markAsRead(notification.id);
+      if (_isDisposed) return;
 
       final index = _notifications.indexWhere(
         (item) => item.id == notification.id,
@@ -75,18 +93,23 @@ class NotificationViewModel extends ChangeNotifier {
         _unreadCount -= 1;
       }
 
-      notifyListeners();
+      _safeNotify();
     } catch (e, stackTrace) {
       logAppError('Failed to mark notification as read', e, stackTrace);
+      if (_isDisposed) return;
+
       _errorMessage = AppErrorMessages.notificationAction;
-      notifyListeners();
+      _safeNotify();
       rethrow;
     }
   }
 
   Future<void> markAllAsRead() async {
+    if (_isDisposed) return;
+
     try {
       await notificationApi.markAllAsRead();
+      if (_isDisposed) return;
 
       final now = DateTime.now();
 
@@ -95,18 +118,23 @@ class NotificationViewModel extends ChangeNotifier {
           .toList();
 
       _unreadCount = 0;
-      notifyListeners();
+      _safeNotify();
     } catch (e, stackTrace) {
       logAppError('Failed to mark all notifications as read', e, stackTrace);
+      if (_isDisposed) return;
+
       _errorMessage = AppErrorMessages.notificationAction;
-      notifyListeners();
+      _safeNotify();
       rethrow;
     }
   }
 
   Future<void> deleteNotification(int notificationId) async {
+    if (_isDisposed) return;
+
     try {
       await notificationApi.deleteNotification(notificationId);
+      if (_isDisposed) return;
 
       final removed = _notifications.where(
         (notification) => notification.id == notificationId,
@@ -124,27 +152,40 @@ class NotificationViewModel extends ChangeNotifier {
         _unreadCount -= 1;
       }
 
-      notifyListeners();
+      _safeNotify();
     } catch (e, stackTrace) {
       logAppError('Failed to delete notification', e, stackTrace);
+      if (_isDisposed) return;
+
       _errorMessage = AppErrorMessages.notificationAction;
-      notifyListeners();
+      _safeNotify();
       rethrow;
     }
   }
 
   Future<void> deleteAllNotifications() async {
+    if (_isDisposed) return;
+
     try {
       await notificationApi.deleteAllNotifications();
+      if (_isDisposed) return;
 
       _notifications = [];
       _unreadCount = 0;
-      notifyListeners();
+      _safeNotify();
     } catch (e, stackTrace) {
       logAppError('Failed to delete all notifications', e, stackTrace);
+      if (_isDisposed) return;
+
       _errorMessage = AppErrorMessages.notificationAction;
-      notifyListeners();
+      _safeNotify();
       rethrow;
     }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }
