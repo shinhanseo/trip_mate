@@ -83,6 +83,62 @@ router.patch("/nickname", authRequired, async (req: AuthRequest, res) => {
   }
 });
 
+router.patch("/onboarding", authRequired, async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
+  const nickname = String(req.body.nickname || "").trim();
+  const gender = req.body.gender ? String(req.body.gender).trim() : null;
+  const ageRange = req.body.age_range ? String(req.body.age_range).trim() : null;
+
+  if (!isValidNickname(nickname)) {
+    return fail(res, 400, "invalid nickname");
+  }
+
+  const normalizedGender =
+    gender === "M" || gender === "male" || gender === "남성"
+      ? "M"
+      : gender === "F" || gender === "female" || gender === "여성"
+        ? "F"
+        : null;
+
+  if (gender && !normalizedGender) {
+    return fail(res, 400, "invalid gender");
+  }
+
+  const allowedAgeRanges = ["10대", "20대", "30대", "40대", "50대", "60대 이상"];
+
+  if (ageRange && !allowedAgeRanges.includes(ageRange)) {
+    return fail(res, 400, "invalid age_range");
+  }
+
+  try {
+    const currentProfile = await prisma.userProfile.findUnique({
+      where: { userId: BigInt(userId) },
+    });
+
+    const profile = await prisma.userProfile.update({
+      where: { userId: BigInt(userId) },
+      data: {
+        nickname,
+        gender: currentProfile?.gender || normalizedGender,
+        ageRange: currentProfile?.ageRange || ageRange,
+        updatedAt: new Date(),
+      },
+    });
+
+    return ok(res, {
+      user: {
+        id: userId,
+        nickname: profile.nickname,
+        gender: profile.gender,
+        age_range: profile.ageRange,
+        profile_completed: !!profile.nickname && !!profile.gender && !!profile.ageRange,
+      },
+    });
+  } catch (error: any) {
+    return fail(res, 400, "failed to complete onboarding", error?.message);
+  }
+});
+
 
 // 내가 참여한 미팅 가져오기
 router.get("/meeting/total", authRequired, async (req: AuthRequest, res) => {

@@ -11,6 +11,7 @@ const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID!;
 const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET!;
 const NAVER_REDIRECT_URI = process.env.NAVER_REDIRECT_URI!;
 const APP_DEEP_LINK = process.env.APP_DEEP_LINK || "mohaeng://login-callback";
+const APPLE_CLIENT_ID = process.env.APPLE_CLIENT_ID || process.env.IOS_BUNDLE_ID || "";
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET!;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
@@ -50,6 +51,82 @@ function getRefreshTokenExpiresAt() {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 30);
   return expiresAt;
+}
+
+async function verifyAppleIdentityToken(identityToken: string) {
+  const decoded = jwt.decode(identityToken, { complete: true }) as
+    | { header?: { kid?: string; alg?: string } }
+    | null;
+
+  const kid = decoded?.header?.kid;
+
+  if (!kid || !APPLE_CLIENT_ID) {
+    throw new Error("invalid apple token configuration");
+  }
+
+  const keysRes = await axios.get("https://appleid.apple.com/auth/keys", {
+    timeout: 5000,
+  });
+
+  const jwk = keysRes.data?.keys?.find((key: any) => key.kid === kid);
+
+  if (!jwk) {
+    throw new Error("apple public key not found");
+  }
+
+  const publicKey = crypto.createPublicKey({
+    key: jwk,
+    format: "jwk",
+  });
+
+  return jwt.verify(identityToken, publicKey, {
+    algorithms: ["RS256"],
+    audience: APPLE_CLIENT_ID,
+    issuer: "https://appleid.apple.com",
+  }) as jwt.JwtPayload;
+}
+
+async function issueAppTokens(client: any, userId: number, req: any) {
+  const accessToken = createAccessToken(userId);
+  const refreshToken = createRefreshToken(userId);
+  const refreshTokenHash = hashToken(refreshToken);
+  const refreshExpiresAt = getRefreshTokenExpiresAt();
+
+  await client.query(
+    `insert into refresh_tokens
+     (user_id, token_hash, device_name, device_id, expires_at)
+     values ($1, $2, $3, $4, $5)`,
+    [
+      userId,
+      refreshTokenHash,
+      req.headers["user-agent"] || "flutter-app",
+      req.headers["x-device-id"] || null,
+      refreshExpiresAt,
+    ]
+  );
+
+  const profileResult = await client.query(
+    `select gender, age_range, nickname
+     from user_profiles
+     where user_id = $1
+     limit 1`,
+    [userId]
+  );
+
+  const profile = profileResult.rows[0] || {};
+  const nickname = profile.nickname ?? null;
+
+  return {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    user: {
+      id: userId,
+      nickname,
+      gender: profile.gender ?? null,
+      age_range: profile.age_range ?? null,
+      profile_completed: !!nickname && !!profile.gender && !!profile.age_range,
+    },
+  };
 }
 
 /**
@@ -293,6 +370,84 @@ router.get("/naver/callback", async (req, res) => {
         message: String(message),
       })
     );
+  }
+});
+
+router.post("/apple", async (req, res) => {
+  const identityToken = String(req.body.identity_token || "").trim();
+  const authorizationCode = req.body.authorization_code
+    ? String(req.body.authorization_code)
+    : null;
+
+  if (!identityToken) {
+    return fail(res, 400, "identity_token is required");
+  }
+
+  try {
+    const payload = await verifyAppleIdentityToken(identityToken);
+    const appleUserId = String(payload.sub || "");
+
+    if (!appleUserId) {
+      return fail(res, 400, "apple user id missing");
+    }
+
+    const client = await pool.connect();
+
+    try {
+      await client.query("BEGIN");
+
+      const socialResult = await client.query(
+        `select user_id from social_accounts
+         where provider = $1 and provider_user_id = $2
+         limit 1`,
+        ["apple", appleUserId]
+      );
+
+      let userId: number;
+
+      if (socialResult.rows.length > 0) {
+        userId = Number(socialResult.rows[0].user_id);
+      } else {
+        const userResult = await client.query(
+          `insert into users (naver_user_id)
+           values (null)
+           returning id`
+        );
+
+        userId = Number(userResult.rows[0].id);
+
+        await client.query(
+          `insert into user_profiles (user_id, profile_image_url)
+           values ($1, $2)`,
+          [userId, process.env.DEFAULT_MAN_PROFILE_URL || null]
+        );
+      }
+
+      await client.query(
+        `insert into social_accounts
+         (user_id, provider, provider_user_id, access_token, refresh_token, expires_at)
+         values ($1, $2, $3, $4, $5, null)
+         on conflict (provider, provider_user_id)
+         do update set
+           user_id = excluded.user_id,
+           access_token = excluded.access_token,
+           updated_at = now()`,
+        [userId, "apple", appleUserId, authorizationCode, null]
+      );
+
+      const session = await issueAppTokens(client, userId, req);
+
+      await client.query("COMMIT");
+
+      return ok(res, session);
+    } catch (dbError: any) {
+      await client.query("ROLLBACK");
+      return fail(res, 500, "apple login failed", dbError.message);
+    } finally {
+      client.release();
+    }
+  } catch (error: any) {
+    return fail(res, 401, "invalid apple identity token", error.message);
   }
 });
 
