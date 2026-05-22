@@ -145,6 +145,8 @@ class LoginViewModel extends ChangeNotifier {
         refreshToken: result.refreshToken,
       );
 
+      await closeInAppWebView();
+
       loginResult = result;
       errorMessage = null;
     } catch (e, stackTrace) {
