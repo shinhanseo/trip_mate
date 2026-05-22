@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -12,8 +15,33 @@ import 'core/utils/app_error.dart';
 import 'app/app.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
 
+      FlutterError.onError = (details) {
+        FlutterError.presentError(details);
+        logAppError(
+          details.context?.toDescription() ?? 'Flutter framework error',
+          details.exception,
+          details.stack,
+        );
+      };
+
+      PlatformDispatcher.instance.onError = (error, stackTrace) {
+        logAppError('Uncaught platform error', error, stackTrace);
+        return true;
+      };
+
+      await _bootstrap();
+    },
+    (error, stackTrace) {
+      logAppError('Uncaught async error', error, stackTrace);
+    },
+  );
+}
+
+Future<void> _bootstrap() async {
   try {
     await Firebase.initializeApp();
 
