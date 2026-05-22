@@ -11,23 +11,40 @@ class WeatherViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   bool _hasLoaded = false;
+  bool _isDisposed = false;
+
+  void _safeNotify() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
 
   Future<void> loadWeather() async {
-    if (_hasLoaded || isLoading) return;
+    if (_isDisposed || _hasLoaded || isLoading) return;
 
     try {
       isLoading = true;
       errorMessage = null;
-      notifyListeners();
+      _safeNotify();
 
       final result = await weatherApi.getJejuWeather();
+      if (_isDisposed) return;
+
       weather = result;
       _hasLoaded = true;
     } catch (e) {
       errorMessage = '날씨 정보를 불러오지 못했습니다.';
     } finally {
-      isLoading = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        isLoading = false;
+        _safeNotify();
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }

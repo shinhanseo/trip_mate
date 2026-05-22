@@ -11,25 +11,41 @@ class RegionSummaryViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? errorMessage;
   bool _hasLoaded = false;
+  bool _isDisposed = false;
+
+  void _safeNotify() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
 
   Future<void> loadRegionSummary() async {
-    if (_hasLoaded || isLoading) return;
+    if (_isDisposed || _hasLoaded || isLoading) return;
 
     try {
       isLoading = true;
       errorMessage = null;
-      notifyListeners();
+      _safeNotify();
 
       final List<RegionSummaryModel> result = await regionSummaryApi
           .fetchRegionSummaryList();
+      if (_isDisposed) return;
 
       regionSummaries = result;
       _hasLoaded = true;
     } catch (e) {
       errorMessage = '동행 요약 정보를 불러오지 못했습니다.';
     } finally {
-      isLoading = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        isLoading = false;
+        _safeNotify();
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }

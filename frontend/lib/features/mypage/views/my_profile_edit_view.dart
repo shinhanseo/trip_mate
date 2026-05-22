@@ -134,224 +134,229 @@ class _MyProfileEditPageState extends State<MyProfileEditPage> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 12,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 28,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.fromLTRB(18, 22, 18, 20),
-                decoration: BoxDecoration(
-                  color: AppColors.gray50,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.gray200),
-                ),
-                child: Column(
-                  children: [
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          width: 104,
-                          height: 104,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.white,
-                              width: 4,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.12),
-                                blurRadius: 18,
-                                offset: const Offset(0, 8),
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 12,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 28,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(18, 22, 18, 20),
+                  decoration: BoxDecoration(
+                    color: AppColors.gray50,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.gray200),
+                  ),
+                  child: Column(
+                    children: [
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            width: 104,
+                            height: 104,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.white,
+                                width: 4,
                               ),
-                            ],
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.12),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              backgroundColor: AppColors.gray100,
+                              backgroundImage:
+                                  (_profileImageUrl != null &&
+                                      _profileImageUrl!.isNotEmpty)
+                                  ? NetworkImage(_profileImageUrl!)
+                                  : null,
+                              child:
+                                  (_profileImageUrl == null ||
+                                      _profileImageUrl!.isEmpty)
+                                  ? const Icon(
+                                      Icons.person,
+                                      size: 44,
+                                      color: AppColors.gray400,
+                                    )
+                                  : null,
+                            ),
                           ),
-                          child: CircleAvatar(
-                            backgroundColor: AppColors.gray100,
-                            backgroundImage:
-                                (_profileImageUrl != null &&
-                                    _profileImageUrl!.isNotEmpty)
-                                ? NetworkImage(_profileImageUrl!)
-                                : null,
-                            child:
-                                (_profileImageUrl == null ||
-                                    _profileImageUrl!.isEmpty)
-                                ? const Icon(
-                                    Icons.person,
-                                    size: 44,
-                                    color: AppColors.gray400,
-                                  )
-                                : null,
-                          ),
-                        ),
-                        Positioned(
-                          right: -2,
-                          bottom: -2,
-                          child: Material(
-                            color: AppColors.brandTeal,
-                            shape: const CircleBorder(),
-                            elevation: 4,
-                            child: InkWell(
-                              customBorder: const CircleBorder(),
-                              onTap: _pickAndUploadImage,
-                              child: const SizedBox(
-                                width: 36,
-                                height: 36,
-                                child: Icon(
-                                  Icons.camera_alt_outlined,
-                                  size: 19,
-                                  color: AppColors.white,
+                          Positioned(
+                            right: -2,
+                            bottom: -2,
+                            child: Material(
+                              color: AppColors.brandTeal,
+                              shape: const CircleBorder(),
+                              elevation: 4,
+                              child: InkWell(
+                                customBorder: const CircleBorder(),
+                                onTap: _pickAndUploadImage,
+                                child: const SizedBox(
+                                  width: 36,
+                                  height: 36,
+                                  child: Icon(
+                                    Icons.camera_alt_outlined,
+                                    size: 19,
+                                    color: AppColors.white,
+                                  ),
                                 ),
                               ),
                             ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _nicknameController.text.trim().isEmpty
+                            ? '새로운 동행자'
+                            : _nicknameController.text.trim(),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${myInfo.gender} · ${myInfo.ageRange}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.gray500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 22),
+
+                _EditSection(
+                  title: '기본 정보',
+                  children: [
+                    _LabeledField(
+                      label: '닉네임',
+                      child: TextFormField(
+                        controller: _nicknameController,
+                        maxLength: 20,
+                        onChanged: (_) => setState(() {}),
+                        decoration: _inputDecoration(
+                          hintText: '닉네임을 입력해주세요',
+                          counterText: '',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                _EditSection(
+                  title: '공개 프로필',
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _ReadonlyInfoTile(
+                            label: '성별',
+                            value: myInfo.gender,
+                            icon: Icons.wc_outlined,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _ReadonlyInfoTile(
+                            label: '연령',
+                            value: myInfo.ageRange,
+                            icon: Icons.cake_outlined,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      _nicknameController.text.trim().isEmpty
-                          ? '새로운 동행자'
-                          : _nicknameController.text.trim(),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${myInfo.gender} · ${myInfo.ageRange}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.gray500,
+                    _LabeledField(
+                      label: '한줄 소개',
+                      child: TextFormField(
+                        controller: _bioController,
+                        maxLength: 80,
+                        minLines: 1,
+                        maxLines: 3,
+                        decoration: _inputDecoration(
+                          hintText: '나를 소개하는 짧은 문장을 적어주세요',
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 22),
+                const SizedBox(height: 14),
 
-              _EditSection(
-                title: '기본 정보',
-                children: [
-                  _LabeledField(
-                    label: '닉네임',
-                    child: TextFormField(
-                      controller: _nicknameController,
-                      maxLength: 20,
-                      onChanged: (_) => setState(() {}),
-                      decoration: _inputDecoration(
-                        hintText: '닉네임을 입력해주세요',
-                        counterText: '',
-                      ),
+                _EditSection(
+                  title: '관심 태그',
+                  subtitle: '프로필에 보여줄 관심사를 골라주세요.',
+                  children: [
+                    MeetingCategoryMultiChip(
+                      selectedCategories: selectedCategories,
+                      onChanged: (values) {
+                        setState(() {
+                          selectedCategories = values;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.success50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.brandMint.withValues(alpha: 0.45),
                     ),
                   ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-
-              _EditSection(
-                title: '공개 프로필',
-                children: [
-                  Row(
+                  child: const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: _ReadonlyInfoTile(
-                          label: '성별',
-                          value: myInfo.gender,
-                          icon: Icons.wc_outlined,
-                        ),
+                      Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: AppColors.success700,
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 8),
                       Expanded(
-                        child: _ReadonlyInfoTile(
-                          label: '연령',
-                          value: myInfo.ageRange,
-                          icon: Icons.cake_outlined,
+                        child: Text(
+                          '성별과 연령은 네이버 로그인 정보 기준으로 표시됩니다.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.35,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.success700,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  _LabeledField(
-                    label: '한줄 소개',
-                    child: TextFormField(
-                      controller: _bioController,
-                      maxLength: 80,
-                      minLines: 1,
-                      maxLines: 3,
-                      decoration: _inputDecoration(
-                        hintText: '나를 소개하는 짧은 문장을 적어주세요',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-
-              _EditSection(
-                title: '관심 태그',
-                subtitle: '프로필에 보여줄 관심사를 골라주세요.',
-                children: [
-                  MeetingCategoryMultiChip(
-                    selectedCategories: selectedCategories,
-                    onChanged: (values) {
-                      setState(() {
-                        selectedCategories = values;
-                      });
-                    },
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.success50,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.brandMint.withValues(alpha: 0.45),
-                  ),
                 ),
-                child: const Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 18,
-                      color: AppColors.success700,
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '성별과 연령은 네이버 로그인 정보 기준으로 표시됩니다.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.35,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.success700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -376,6 +381,8 @@ class _MyProfileEditPageState extends State<MyProfileEditPage> {
                 onTap: vm.isLoading
                     ? null
                     : () async {
+                        FocusManager.instance.primaryFocus?.unfocus();
+
                         final edit = ProfileEditModel(
                           nickname: _nicknameController.text.trim(),
                           bio: _bioController.text.trim(),
