@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/constants/app_colors.dart';
+import 'package:frontend/core/widgets/confirm_dialog.dart';
 import 'package:frontend/features/meeting_shared/utils/meeting_filter_options.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -80,6 +81,8 @@ class _UserProfileViewState extends State<UserProfileView> {
                 onSelected: (value) async {
                   if (value == 'report') {
                     await _showUserReportBottomSheet(context);
+                  } else if (value == 'block') {
+                    await _confirmBlockUser(context);
                   }
                 },
                 itemBuilder: (context) => const [
@@ -88,6 +91,19 @@ class _UserProfileViewState extends State<UserProfileView> {
                     child: Center(
                       child: Text(
                         '신고하기',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.red700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'block',
+                    child: Center(
+                      child: Text(
+                        '차단하기',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -187,6 +203,42 @@ class _UserProfileViewState extends State<UserProfileView> {
       builder: (sheetContext) => _UserReportBottomSheet(
         targetUserId: widget.userId,
         reportViewModel: reportViewModel,
+      ),
+    );
+  }
+
+  Future<void> _confirmBlockUser(BuildContext context) async {
+    final vm = context.read<UserProfileViewModel>();
+    final userProfile = vm.userProfile;
+
+    if (userProfile == null || vm.isBlocking) return;
+
+    await showDialog(
+      context: context,
+      builder: (_) => ConfirmDialog(
+        title: '사용자 차단',
+        message:
+            '${userProfile.nickname}님을 차단하면 이 사용자의 동행과 프로필이 내 화면에서 숨김 처리됩니다.',
+        confirmText: '차단하기',
+        onConfirm: () async {
+          final success = await vm.blockUser(widget.userId);
+
+          if (!context.mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                success
+                    ? '차단되었습니다. 해당 사용자의 콘텐츠는 내 화면에서 숨김 처리됩니다.'
+                    : '사용자 차단에 실패했습니다.',
+              ),
+            ),
+          );
+
+          if (success) {
+            Navigator.pop(context, true);
+          }
+        },
       ),
     );
   }

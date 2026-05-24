@@ -11,6 +11,7 @@ class UserProfileViewModel extends ChangeNotifier {
 
   MyPageModel? userProfile;
   bool isLoading = false;
+  bool isBlocking = false;
   String? errorMessage;
   bool isSuccess = false;
 
@@ -32,6 +33,26 @@ class UserProfileViewModel extends ChangeNotifier {
       userProfile = null;
     } finally {
       isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> blockUser(int userId) async {
+    if (isBlocking) return false;
+
+    try {
+      isBlocking = true;
+      errorMessage = null;
+      notifyListeners();
+
+      await myPageApi.blockUser(userId: userId);
+      return true;
+    } catch (e, stackTrace) {
+      logAppError('Failed to block user', e, stackTrace);
+      errorMessage = '사용자 차단에 실패했습니다.';
+      return false;
+    } finally {
+      isBlocking = false;
       notifyListeners();
     }
   }

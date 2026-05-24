@@ -219,12 +219,17 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
                         color: Colors.transparent,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(16),
-                          onTap: () {
-                            Navigator.pushNamed(
+                          onTap: () async {
+                            final blocked = await Navigator.pushNamed(
                               context,
                               '/userprofile',
                               arguments: member.userId,
                             );
+                            if (blocked == true && context.mounted) {
+                              await context
+                                  .read<MeetingDetailViewModel>()
+                                  .refresh(widget.meetingId);
+                            }
                           },
                           child: _UserProfile(
                             nickname: member.nickname,
@@ -529,7 +534,7 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
   Future<void> _showMeetingReportBottomSheet(BuildContext context) async {
     final reportViewModel = context.read<ReportViewModel>();
 
-    await showModalBottomSheet(
+    final reported = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
@@ -542,6 +547,13 @@ class _MeetingDetailPageState extends State<MeetingDetailPage> {
         reportViewModel: reportViewModel,
       ),
     );
+
+    if (!context.mounted || reported != true) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('신고가 접수되었습니다. 해당 동행은 내 화면에서 숨김 처리됩니다.')),
+    );
+    Navigator.pop(context, true);
   }
 }
 
@@ -596,12 +608,13 @@ class _MeetingReportBottomSheetState extends State<_MeetingReportBottomSheet> {
 
     if (!mounted) return;
 
-    final messenger = ScaffoldMessenger.of(context);
-    Navigator.pop(context);
+    Navigator.pop(context, success);
 
-    messenger.showSnackBar(
-      SnackBar(content: Text(success ? '신고가 접수되었습니다.' : '신고 접수에 실패했습니다.')),
-    );
+    if (!success && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('신고 접수에 실패했습니다.')));
+    }
   }
 
   @override

@@ -242,6 +242,27 @@ class MyPageApi {
     throw Exception(json['message'] ?? '유저 프로필을 불러오지 못했습니다.');
   }
 
+  Future<void> blockUser({
+    required int userId,
+    String reason = '사용자 차단',
+    String? detail,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/user/$userId/block');
+
+    final response = await _authorizedPost(
+      url,
+      body: jsonEncode({'reason': reason, 'detail': detail}),
+    );
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return;
+    }
+
+    throw Exception(json['message'] ?? '사용자 차단에 실패했습니다.');
+  }
+
   Future<List<TotalMeetingMapModel>> getTotalMeetingMap() async {
     final url = Uri.parse('$baseUrl/api/user/map');
 
@@ -311,6 +332,50 @@ class MyPageApi {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $newAccessToken',
       },
+    );
+
+    return response;
+  }
+
+  Future<http.Response> _authorizedPost(Uri url, {Object? body}) async {
+    String? accessToken = await tokenStorage.getAccessToken();
+
+    http.Response response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+      body: body,
+    );
+
+    if (response.statusCode != 401) {
+      return response;
+    }
+
+    final refreshToken = await tokenStorage.getRefreshToken();
+
+    if (refreshToken == null || refreshToken.isEmpty) {
+      throw Exception('로그인이 만료되었습니다.');
+    }
+
+    final tokenResponse = await authApi.updateAccessToken(
+      refreshToken: refreshToken,
+    );
+
+    final newAccessToken = tokenResponse['access_token'] as String;
+    final newRefreshToken = tokenResponse['refresh_token'] as String;
+
+    await tokenStorage.saveAccessToken(newAccessToken);
+    await tokenStorage.saveRefreshToken(newRefreshToken);
+
+    response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $newAccessToken',
+      },
+      body: body,
     );
 
     return response;
