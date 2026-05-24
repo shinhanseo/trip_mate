@@ -12,6 +12,8 @@ import '../features/home/services/region_summary_api.dart';
 
 import '../features/auth/views/login_page.dart';
 import '../features/auth/views/nickname_page.dart';
+import '../features/auth/views/terms_page.dart';
+import '../features/auth/widgets/terms_gate.dart';
 import '../features/auth/viewmodels/nickname_viewmodel.dart';
 import '../features/auth/services/auth_api.dart';
 import '../features/auth/services/token_storage.dart';
@@ -61,6 +63,7 @@ import '../features/notification/view/notification_view.dart';
 class AppRouter {
   static const String root = '/';
   static const String home = '/home';
+  static const String terms = '/terms';
   static const String login = '/login';
   static const String nickname = '/nickname';
   static const String splash = '/splash';
@@ -125,7 +128,13 @@ class AppRouter {
 
       case login:
         return MaterialPageRoute(
-          builder: (_) => const LoginPage(),
+          builder: (_) => const TermsGate(child: LoginPage()),
+          settings: settings,
+        );
+
+      case terms:
+        return MaterialPageRoute(
+          builder: (_) => const TermsPage(),
           settings: settings,
         );
 

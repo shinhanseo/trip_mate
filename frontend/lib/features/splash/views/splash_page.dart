@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../../auth/services/auth_api.dart';
+import '../../auth/services/terms_storage.dart';
 import '../../auth/services/token_storage.dart';
 import '../../auth/viewmodels/auth_state.dart';
 import '../../notification/services/fcm_service.dart';
@@ -21,6 +22,7 @@ class _SplashPageState extends State<SplashPage> {
   late final SplashViewModel viewModel;
   final String baseUrl = dotenv.env['BASE_URL']!;
   bool _didRegisterFcmToken = false;
+  bool _didNavigate = false;
 
   @override
   void initState() {
@@ -40,24 +42,40 @@ class _SplashPageState extends State<SplashPage> {
 
     setState(() {});
 
+    if (_didNavigate) return;
+
     if (viewModel.user != null) {
       context.read<AuthState>().setUser(viewModel.user!);
       _registerFcmTokenOnce();
     }
 
     if (viewModel.shouldGoHome) {
+      _didNavigate = true;
       Navigator.pushReplacementNamed(context, '/home');
       return;
     }
 
     if (viewModel.shouldGoNickname) {
+      _didNavigate = true;
       Navigator.pushReplacementNamed(context, '/nickname');
       return;
     }
 
     if (viewModel.shouldGoLogin) {
-      Navigator.pushReplacementNamed(context, '/login');
+      _goToLoginAfterTerms();
     }
+  }
+
+  Future<void> _goToLoginAfterTerms() async {
+    _didNavigate = true;
+    final acceptedTerms = await TermsStorage().hasAcceptedTerms();
+
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(
+      context,
+      acceptedTerms ? '/login' : '/terms',
+    );
   }
 
   void _registerFcmTokenOnce() {
