@@ -58,6 +58,31 @@ router.get(
       const roomId = room.room_id;
       const joinedAt = room.joined_at;
 
+      const blockRes = await client.query(
+        `
+        select bu.id
+        from blocked_users bu
+        join meeting_members mm
+          on mm.meeting_id = $1
+          and mm.status = 'joined'
+          and mm.user_id <> $2
+        where (
+            bu.blocker_id = $2
+            and bu.blocked_user_id = mm.user_id
+          )
+          or (
+            bu.blocked_user_id = $2
+            and bu.blocker_id = mm.user_id
+          )
+        limit 1
+        `,
+        [meetingId, userId]
+      );
+
+      if (blockRes.rowCount !== 0) {
+        return fail(res, 403, "blocked user interaction");
+      }
+
       const messageRes = await client.query(
         `
         select
@@ -174,6 +199,32 @@ router.post(
         return fail(res, 403, "forbidden");
       }
 
+      const blockRes = await client.query(
+        `
+        select bu.id
+        from blocked_users bu
+        join meeting_members mm
+          on mm.meeting_id = $1
+          and mm.status = 'joined'
+          and mm.user_id <> $2
+        where (
+            bu.blocker_id = $2
+            and bu.blocked_user_id = mm.user_id
+          )
+          or (
+            bu.blocked_user_id = $2
+            and bu.blocker_id = mm.user_id
+          )
+        limit 1
+        `,
+        [meetingId, userId]
+      );
+
+      if (blockRes.rowCount !== 0) {
+        await client.query("rollback");
+        return fail(res, 403, "blocked user interaction");
+      }
+
       const roomRes = await client.query(
         `
         select
@@ -187,13 +238,12 @@ router.post(
         [meetingId]
       );
 
-      const meetingTitle = roomRes.rows[0].meeting_title;
-
       if (roomRes.rowCount === 0) {
         await client.query("rollback");
         return fail(res, 404, "chat room not found");
       }
 
+      const meetingTitle = roomRes.rows[0].meeting_title;
       const roomId = roomRes.rows[0].id;
 
       const chatMemberRes = await client.query(
@@ -361,6 +411,22 @@ router.get("/rooms", authRequired, async (req: AuthRequest, res: Response) => {
         on up.user_id = lm.sender_id
       where crm.user_id = $1
         and m.status <> 'cancelled'
+        and not exists (
+          select 1
+          from meeting_members mm_blocked
+          join blocked_users bu
+            on (
+              bu.blocker_id = $1
+              and bu.blocked_user_id = mm_blocked.user_id
+            )
+            or (
+              bu.blocked_user_id = $1
+              and bu.blocker_id = mm_blocked.user_id
+            )
+          where mm_blocked.meeting_id = m.id
+            and mm_blocked.status = 'joined'
+            and mm_blocked.user_id <> $1
+        )
       order by
         coalesce(lm.created_at, cr.updated_at) desc,
         cr.id desc

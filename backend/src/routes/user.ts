@@ -620,9 +620,39 @@ router.get("/mypage", authRequired, async (req: AuthRequest, res) => {
 
 router.get("/:id/profile", authRequired, async (req: AuthRequest, res) => {
   const userId = Number(req.params.id);
+  const currentUserId = req.user!.userId;
   const prismaUserId = BigInt(userId);
+  const currentPrismaUserId = BigInt(currentUserId);
 
   try {
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return fail(res, 400, "invalid user id");
+    }
+
+    if (currentPrismaUserId !== prismaUserId) {
+      const blockedUser = await prisma.blockedUser.findFirst({
+        where: {
+          OR: [
+            {
+              blockerId: currentPrismaUserId,
+              blockedUserId: prismaUserId,
+            },
+            {
+              blockerId: prismaUserId,
+              blockedUserId: currentPrismaUserId,
+            },
+          ],
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (blockedUser) {
+        return fail(res, 404, "user not found");
+      }
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: prismaUserId },
       include: {
@@ -689,6 +719,78 @@ router.get("/:id/profile", authRequired, async (req: AuthRequest, res) => {
     });
   } catch (error: any) {
     return fail(res, 500, "failed to get my profile", error?.message);
+  }
+});
+
+router.post("/:id/block", authRequired, async (req: AuthRequest, res) => {
+  const blockerId = req.user!.userId;
+  const blockedUserId = Number(req.params.id);
+  const reason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "사용자 차단";
+  const detail = typeof req.body?.detail === "string" ? req.body.detail.trim() : null;
+
+  if (!Number.isInteger(blockedUserId) || blockedUserId <= 0) {
+    return fail(res, 400, "invalid user id");
+  }
+
+  if (blockedUserId === blockerId) {
+    return fail(res, 400, "block myself impossible");
+  }
+
+  const blockerPrismaId = BigInt(blockerId);
+  const blockedPrismaId = BigInt(blockedUserId);
+  const normalizedReason = reason || "사용자 차단";
+  const normalizedDetail = detail && detail.length > 0 ? detail : null;
+
+  try {
+    const blockedUser = await prisma.user.findUnique({
+      where: {
+        id: blockedPrismaId,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (!blockedUser || blockedUser.status !== "active") {
+      return fail(res, 404, "user not found");
+    }
+
+    await prisma.$transaction([
+      prisma.blockedUser.upsert({
+        where: {
+          blockerId_blockedUserId: {
+            blockerId: blockerPrismaId,
+            blockedUserId: blockedPrismaId,
+          },
+        },
+        update: {
+          reason: normalizedReason,
+          detail: normalizedDetail,
+        },
+        create: {
+          blockerId: blockerPrismaId,
+          blockedUserId: blockedPrismaId,
+          reason: normalizedReason,
+          detail: normalizedDetail,
+        },
+      }),
+      prisma.report.create({
+        data: {
+          reporterId: blockerPrismaId,
+          targetType: "user",
+          targetId: blockedPrismaId,
+          reason: normalizedReason,
+          detail: normalizedDetail,
+        },
+      }),
+    ]);
+
+    return ok(res, {
+      message: "user blocked",
+    }, 201);
+  } catch (error: any) {
+    return fail(res, 500, "failed to block user", error?.message);
   }
 });
 

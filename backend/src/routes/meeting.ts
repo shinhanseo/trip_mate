@@ -61,6 +61,19 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
         on mm.meeting_id = m.id
       where m.status = 'open'
         and m.scheduled_at >= now()
+        and not exists (
+          select 1
+          from reports r
+          where r.reporter_id = $6
+            and r.target_type = 'meeting'
+            and r.target_id = m.id
+        )
+        and not exists (
+          select 1
+          from blocked_users bu
+          where bu.blocker_id = $6
+            and bu.blocked_user_id = m.host_user_id
+        )
         and ($1::text is null or m.category = $1)
         and ($2::text is null or m.gender = $2 or m.gender = 'any')
         and (
@@ -80,7 +93,7 @@ router.get("/", authRequired, async (req: AuthRequest, res: Response) => {
       group by m.id
       order by m.scheduled_at asc, m.id desc
       `,
-      [categoryFilter, genderFilter, ageGroupFilter, keywordFilter, regionPrimaryFilter]
+      [categoryFilter, genderFilter, ageGroupFilter, keywordFilter, regionPrimaryFilter, userId]
     );
 
     return ok(res, {
@@ -203,9 +216,22 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
       left join meeting_members mm
         on mm.meeting_id = m.id
       where m.id = $1
+        and not exists (
+          select 1
+          from reports r
+          where r.reporter_id = $2
+            and r.target_type = 'meeting'
+            and r.target_id = m.id
+        )
+        and not exists (
+          select 1
+          from blocked_users bu
+          where bu.blocker_id = $2
+            and bu.blocked_user_id = m.host_user_id
+        )
       group by m.id
       `,
-      [meetingId]
+      [meetingId, userId]
     );
 
     if (meetingRes.rowCount === 0) {
@@ -227,11 +253,17 @@ router.get("/:id", authRequired, async (req: AuthRequest, res: Response) => {
         on up.user_id = mm.user_id
       where mm.meeting_id = $1
         and mm.status = 'joined'
+        and not exists (
+          select 1
+          from blocked_users bu
+          where bu.blocker_id = $2
+            and bu.blocked_user_id = mm.user_id
+        )
       order by
         case when mm.role = 'host' then 0 else 1 end,
         mm.joined_at asc
       `,
-      [meetingId]
+      [meetingId, userId]
     );
 
     const row = meetingRes.rows[0];
@@ -907,6 +939,28 @@ router.post("/:id/join", authRequired, async (req: AuthRequest, res: Response) =
     if (meeting.status !== "open") {
       await client.query("rollback");
       return fail(res, 409, "meeting status is not open");
+    }
+
+    const blockRes = await client.query(
+      `
+      select id
+      from blocked_users
+      where (
+          blocker_id = $1
+          and blocked_user_id = $2
+        )
+        or (
+          blocker_id = $2
+          and blocked_user_id = $1
+        )
+      limit 1
+      `,
+      [userId, meeting.host_user_id]
+    );
+
+    if (blockRes.rowCount !== 0) {
+      await client.query("rollback");
+      return fail(res, 403, "blocked user interaction");
     }
 
     const profileRes = await client.query(

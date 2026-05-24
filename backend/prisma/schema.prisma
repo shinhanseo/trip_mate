@@ -23,6 +23,8 @@ model User {
   chatRoomMembers  ChatRoomMember[]
   sentChatMessages ChatMessage[]    @relation("ChatMessageSender")
   submittedReports Report[]         @relation("ReportReporter")
+  blockedUsers     BlockedUser[]    @relation("UserBlocks")
+  blockedByUsers   BlockedUser[]    @relation("UserBlockedBy")
   notifications    Notification[]
   fcmTokens        UserFcmToken[]
 
@@ -168,13 +170,13 @@ model ChatRoomMember {
 }
 
 model ChatMessage {
-  id        BigInt   @id @default(autoincrement())
-  roomId    BigInt   @map("room_id")
-  senderId  BigInt?  @map("sender_id")
-  messageType String @default("text") @map("message_type")
-  content   String
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  id          BigInt   @id @default(autoincrement())
+  roomId      BigInt   @map("room_id")
+  senderId    BigInt?  @map("sender_id")
+  messageType String   @default("text") @map("message_type")
+  content     String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
 
   room              ChatRoom         @relation(fields: [roomId], references: [id], onDelete: Cascade)
   sender            User?            @relation("ChatMessageSender", fields: [senderId], references: [id], onDelete: Restrict)
@@ -202,6 +204,23 @@ model Report {
   @@index([targetType, targetId], map: "reports_target_type_target_id_idx")
   @@index([status, createdAt], map: "reports_status_created_at_idx")
   @@map("reports")
+}
+
+model BlockedUser {
+  id            BigInt   @id @default(autoincrement())
+  blockerId     BigInt   @map("blocker_id")
+  blockedUserId BigInt   @map("blocked_user_id")
+  reason        String?  @db.VarChar(50)
+  detail        String?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  blocker     User @relation("UserBlocks", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedUser User @relation("UserBlockedBy", fields: [blockedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedUserId], map: "blocked_users_blocker_blocked_user_key")
+  @@index([blockerId], map: "blocked_users_blocker_id_idx")
+  @@index([blockedUserId], map: "blocked_users_blocked_user_id_idx")
+  @@map("blocked_users")
 }
 
 model Notification {
