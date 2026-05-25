@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class TermsStorage {
   static const String _acceptedKey = 'terms_accepted';
   static const String _acceptedAtKey = 'terms_accepted_at';
-  static const String currentVersion = '2026-05-24';
+  static const String currentVersion = '2026-05-25';
 
   Future<bool> hasAcceptedTerms() async {
     final prefs = await SharedPreferences.getInstance();

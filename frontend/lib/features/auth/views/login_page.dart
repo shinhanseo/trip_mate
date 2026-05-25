@@ -228,6 +228,21 @@ class _LoginPageState extends State<LoginPage> {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
 
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/terms');
+                },
+                child: const Text(
+                  '이용약관(EULA) 및 커뮤니티 안전 정책 보기',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.gray600,
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 24),
             ],
           ),

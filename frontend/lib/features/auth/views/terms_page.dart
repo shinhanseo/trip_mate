@@ -54,7 +54,7 @@ class _TermsPageState extends State<TermsPage> {
               ),
               const SizedBox(height: 18),
               const Text(
-                '안전한 동행을 위해\n약관에 동의해 주세요.',
+                '안전한 동행을 위해\nEULA에 동의해 주세요.',
                 style: TextStyle(
                   fontSize: 26,
                   height: 1.28,
@@ -64,7 +64,7 @@ class _TermsPageState extends State<TermsPage> {
               ),
               const SizedBox(height: 12),
               const Text(
-                '로그인 또는 회원가입 전에 이용약관과 커뮤니티 안전 정책에 동의해야 모행을 이용할 수 있습니다.',
+                '로그인 또는 회원가입 전에 이용약관(EULA)과 커뮤니티 안전 정책에 동의해야 모행을 이용할 수 있습니다.',
                 style: TextStyle(
                   fontSize: 15,
                   height: 1.45,
@@ -78,15 +78,15 @@ class _TermsPageState extends State<TermsPage> {
                   child: Column(
                     children: [
                       _TermsSection(
-                        title: '이용약관',
+                        title: '이용약관(EULA)',
                         body:
-                            '모행은 여행자 간 동행 모집과 소통을 돕는 서비스입니다. 사용자는 정확한 정보를 제공하고, 타인의 권리와 안전을 침해하지 않아야 합니다. 불법 행위, 사기, 개인정보 무단 공유, 타인을 위협하거나 괴롭히는 행위는 금지됩니다.',
+                            '모행은 여행자 간 동행 모집과 소통을 돕는 서비스입니다. 사용자는 정확한 정보를 제공하고, 타인의 권리와 안전을 침해하지 않아야 합니다. 불법 행위, 사기, 개인정보 무단 공유, 타인을 위협하거나 괴롭히는 행위는 금지됩니다. 위반 사용자는 콘텐츠 삭제, 계정 이용 제한 또는 탈퇴 조치될 수 있습니다.',
                       ),
                       const SizedBox(height: 12),
                       _TermsSection(
                         title: '커뮤니티 가이드라인',
                         body:
-                            '욕설, 혐오, 성적 콘텐츠, 폭력적 표현, 괴롭힘, 스팸, 불쾌하거나 위험한 콘텐츠는 허용되지 않습니다. 사용자는 게시글과 프로필에서 부적절한 콘텐츠를 신고할 수 있으며, 악성 사용자를 차단할 수 있습니다.',
+                            '모행은 objectionable content 또는 abusive users에 대해 무관용 원칙을 적용합니다. 욕설, 혐오, 성적 콘텐츠, 폭력적 표현, 괴롭힘, 스팸, 불쾌하거나 위험한 콘텐츠는 허용되지 않습니다. 사용자는 게시글과 프로필에서 부적절한 콘텐츠를 신고할 수 있으며, 악성 사용자를 차단할 수 있습니다.',
                       ),
                       const SizedBox(height: 12),
                       _TermsSection(
@@ -101,7 +101,7 @@ class _TermsPageState extends State<TermsPage> {
               const SizedBox(height: 16),
               _AgreementCheckbox(
                 value: _acceptedTerms,
-                text: '이용약관에 동의합니다.',
+                text: '이용약관(EULA)에 동의합니다.',
                 onChanged: (value) {
                   setState(() {
                     _acceptedTerms = value ?? false;
