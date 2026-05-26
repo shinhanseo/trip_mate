@@ -7,7 +7,7 @@ TripMate는 제주 여행 중 혼자 하기 아쉬운 일정이나 장소를 함
 앱 내 서비스명은 **모행**으로, "모여서 함께 떠나는 여행"이라는 의미를 담고 있습니다.
 
 ## Demo
-
+https://github.com/user-attachments/assets/bb1aeca8-8cd2-4518-b96f-8d599a0d3ab7
 
 
 ## Background
