@@ -270,5 +270,6 @@ FIREBASE_SERVICE_ACCOUNT_PATH=./firebase-service-account.json
 ## Status
 
 - iOS 배포 완료
-- Android 배포 진행 중
+- Android 배포 완료
+
 
